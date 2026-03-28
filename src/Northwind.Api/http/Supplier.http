@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:5019
+
+### Supplier - Health
+GET {{baseUrl}}/api/supplier/health
+Accept: application/json

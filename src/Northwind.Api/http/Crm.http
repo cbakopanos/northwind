@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:5019
+
+### Crm - Health
+GET {{baseUrl}}/api/crm/health
+Accept: application/json
