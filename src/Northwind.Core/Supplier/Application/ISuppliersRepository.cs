@@ -1,6 +1,6 @@
 namespace Northwind.Supplier.Application;
 
-public interface IGetAllSuppliers
+public interface ISuppliersRepository
 {
     Task<IReadOnlyList<SupplierListItem>> Execute(CancellationToken cancellationToken = default);
 }

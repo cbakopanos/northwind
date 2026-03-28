@@ -41,6 +41,18 @@ public static class NorthwindCoreComposition
             .GetCustomAttributes<InfrastructureAttribute>(inherit: false)
             .ToArray();
 
+        if (infrastructureAttributes.Length > 0 && !typeof(IModule).IsAssignableFrom(moduleType))
+        {
+            throw new InvalidOperationException(
+                $"InfrastructureAttribute can only decorate IModule implementations. Invalid type: '{moduleType.FullName}'.");
+        }
+
+        if (infrastructureAttributes.Length > 1)
+        {
+            throw new InvalidOperationException(
+                $"InfrastructureAttribute can only be applied once per module. Invalid module: '{moduleType.FullName}'.");
+        }
+
         foreach (var infrastructureAttribute in infrastructureAttributes)
         {
             if (!infrastructureAttribute.IsValidDbContextType)

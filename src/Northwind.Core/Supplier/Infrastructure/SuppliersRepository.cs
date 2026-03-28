@@ -4,9 +4,9 @@ using Northwind.Supplier.Application;
 
 namespace Northwind.Supplier.Infrastructure;
 
-public sealed class GetAllSuppliersQuery(
+public sealed class SuppliersRepository(
     SupplierDbContext dbContext,
-    ILogger<GetAllSuppliersQuery> logger) : IGetAllSuppliers
+    ILogger<SuppliersRepository> logger) : ISuppliersRepository
 {
     public async Task<IReadOnlyList<SupplierListItem>> Execute(CancellationToken cancellationToken = default)
     {
