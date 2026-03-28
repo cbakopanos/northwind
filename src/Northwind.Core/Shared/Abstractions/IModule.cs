@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,5 +8,5 @@ public interface IModule
 {
     IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration);
 
-    WebApplication MapEndpoints(WebApplication app);
+    IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints);
 }

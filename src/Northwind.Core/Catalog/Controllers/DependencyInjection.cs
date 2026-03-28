@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Northwind.Catalog.Controllers;
@@ -11,10 +12,10 @@ public static class DependencyInjection
         return services;
     }
 
-    public static WebApplication MapCatalogEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapCatalogEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = app.MapGroup("/api/catalog");
+        var group = endpoints.MapGroup("/api/catalog");
         group.MapGet("/health", () => new { context = "Catalog", status = "ok" });
-        return app;
+        return endpoints;
     }
 }

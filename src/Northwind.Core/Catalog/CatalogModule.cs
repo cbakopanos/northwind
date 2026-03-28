@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Catalog.Application;
@@ -21,9 +21,9 @@ public sealed class CatalogModule : IModule
         return services;
     }
 
-    public WebApplication MapEndpoints(WebApplication app)
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        app.MapCatalogEndpoints();
-        return app;
+        endpoints.MapCatalogEndpoints();
+        return endpoints;
     }
 }

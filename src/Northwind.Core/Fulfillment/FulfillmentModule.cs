@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Fulfillment.Application;
@@ -21,9 +21,9 @@ public sealed class FulfillmentModule : IModule
         return services;
     }
 
-    public WebApplication MapEndpoints(WebApplication app)
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        app.MapFulfillmentEndpoints();
-        return app;
+        endpoints.MapFulfillmentEndpoints();
+        return endpoints;
     }
 }

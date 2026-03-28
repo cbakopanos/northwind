@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Northwind.SalesOrg.Controllers;
@@ -11,10 +12,10 @@ public static class DependencyInjection
         return services;
     }
 
-    public static WebApplication MapSalesOrgEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapSalesOrgEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = app.MapGroup("/api/sales-org");
+        var group = endpoints.MapGroup("/api/sales-org");
         group.MapGet("/health", () => new { context = "SalesOrg", status = "ok" });
-        return app;
+        return endpoints;
     }
 }

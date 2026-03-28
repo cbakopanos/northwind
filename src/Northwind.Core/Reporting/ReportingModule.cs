@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Reporting.Application;
@@ -21,9 +21,9 @@ public sealed class ReportingModule : IModule
         return services;
     }
 
-    public WebApplication MapEndpoints(WebApplication app)
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        app.MapReportingEndpoints();
-        return app;
+        endpoints.MapReportingEndpoints();
+        return endpoints;
     }
 }

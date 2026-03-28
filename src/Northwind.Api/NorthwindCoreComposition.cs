@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Shared.Abstractions;
@@ -8,9 +9,11 @@ namespace Northwind;
 
 public static class NorthwindCoreComposition
 {
+    private static readonly Lazy<IReadOnlyList<IModule>> Modules = new(DiscoverModules);
+
     public static IServiceCollection AddNorthwindCoreModules(this IServiceCollection services, IConfiguration configuration)
     {
-        foreach (var module in GetModules())
+        foreach (var module in Modules.Value)
         {
             services = module.AddModule(services, configuration);
         }
@@ -20,15 +23,17 @@ public static class NorthwindCoreComposition
 
     public static WebApplication MapNorthwindCoreEndpoints(this WebApplication app)
     {
-        foreach (var module in GetModules())
+        IEndpointRouteBuilder endpoints = app;
+
+        foreach (var module in Modules.Value)
         {
-            app = module.MapEndpoints(app);
+            endpoints = module.MapEndpoints(endpoints);
         }
 
         return app;
     }
 
-    private static IReadOnlyList<IModule> GetModules()
+    private static IReadOnlyList<IModule> DiscoverModules()
     {
         return typeof(IModule)
             .Assembly
