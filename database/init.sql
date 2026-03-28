@@ -221,55 +221,55 @@ CREATE TABLE employee_territory_assignments (
 
 SET search_path = reporting, sales_ordering, catalog, crm, sales_org, fulfillment, supplier, public;
 
-CREATE VIEW "Customer and Suppliers by City" AS
-SELECT city AS "City", company_name AS "CompanyName", contact_name AS "ContactName", 'Customers' AS "Relationship"
+CREATE VIEW customer_and_suppliers_by_city AS
+SELECT city, company_name, contact_name, 'Customers'::text AS relationship
 FROM customers
 UNION
-SELECT city AS "City", company_name AS "CompanyName", contact_name AS "ContactName", 'Suppliers'
+SELECT city, company_name, contact_name, 'Suppliers'::text
 FROM suppliers;
 
-CREATE VIEW "Alphabetical list of products" AS
-SELECT p.*, c.category_name AS "CategoryName"
+CREATE VIEW alphabetical_list_of_products AS
+SELECT p.*, c.category_name
 FROM categories c INNER JOIN products p ON c.category_id = p.category_id
 WHERE p.is_discontinued = false;
 
-CREATE VIEW "Current Product List" AS
-SELECT p.product_id AS "ProductID", p.product_name AS "ProductName"
+CREATE VIEW current_product_list AS
+SELECT p.product_id, p.product_name
 FROM products p
 WHERE p.is_discontinued = false;
 
-CREATE VIEW "Orders Qry" AS
-SELECT o.order_id AS "OrderID", o.customer_id AS "CustomerID", o.employee_id AS "EmployeeID", o.ordered_at AS "OrderDate", o.required_at AS "RequiredDate",
-  o.shipped_at AS "ShippedDate", o.shipper_id AS "ShipVia", o.freight_amount AS "Freight", o.ship_name AS "ShipName", o.ship_address AS "ShipAddress", o.ship_city AS "ShipCity",
-  o.ship_region AS "ShipRegion", o.ship_postal_code AS "ShipPostalCode", o.ship_country AS "ShipCountry",
-  c.company_name AS "CompanyName", c.address AS "Address", c.city AS "City", c.region AS "Region", c.postal_code AS "PostalCode", c.country AS "Country"
+CREATE VIEW orders_query AS
+SELECT o.order_id, o.customer_id, o.employee_id, o.ordered_at, o.required_at,
+  o.shipped_at, o.shipper_id, o.freight_amount, o.ship_name, o.ship_address, o.ship_city,
+  o.ship_region, o.ship_postal_code, o.ship_country,
+  c.company_name, c.address, c.city, c.region, c.postal_code, c.country
 FROM customers c INNER JOIN orders o ON c.customer_id = o.customer_id;
 
-CREATE VIEW "Products Above Average Price" AS
-SELECT p.product_name AS "ProductName", p.unit_price AS "UnitPrice"
+CREATE VIEW products_above_average_price AS
+SELECT p.product_name, p.unit_price
 FROM products p
 WHERE p.unit_price > (SELECT AVG(unit_price) FROM products);
 
-CREATE VIEW "Products by Category" AS
-SELECT c.category_name AS "CategoryName", p.product_name AS "ProductName", p.quantity_per_unit AS "QuantityPerUnit", p.units_in_stock AS "UnitsInStock", p.is_discontinued AS "Discontinued"
+CREATE VIEW products_by_category AS
+SELECT c.category_name, p.product_name, p.quantity_per_unit, p.units_in_stock, p.is_discontinued
 FROM categories c INNER JOIN products p ON c.category_id = p.category_id
 WHERE p.is_discontinued <> true;
 
-CREATE VIEW "Quarterly Orders" AS
-SELECT DISTINCT c.customer_id AS "CustomerID", c.company_name AS "CompanyName", c.city AS "City", c.country AS "Country"
+CREATE VIEW quarterly_orders AS
+SELECT DISTINCT c.customer_id, c.company_name, c.city, c.country
 FROM customers c RIGHT JOIN orders o ON c.customer_id = o.customer_id
 WHERE o.ordered_at BETWEEN '19970101' AND '19971231';
 
-CREATE VIEW "Invoices" AS
-SELECT o.ship_name AS "ShipName", o.ship_address AS "ShipAddress", o.ship_city AS "ShipCity", o.ship_region AS "ShipRegion", o.ship_postal_code AS "ShipPostalCode",
-  o.ship_country AS "ShipCountry", o.customer_id AS "CustomerID", c.company_name AS "CustomerName", c.address AS "Address", c.city AS "City",
-  c.region AS "Region", c.postal_code AS "PostalCode", c.country AS "Country",
-  (e.first_name || ' ' || e.last_name) AS "Salesperson",
-  o.order_id AS "OrderID", o.ordered_at AS "OrderDate", o.required_at AS "RequiredDate", o.shipped_at AS "ShippedDate", s.company_name AS "ShipperName",
-  od.product_id AS "ProductID", p.product_name AS "ProductName", od.unit_price AS "UnitPrice", od.quantity AS "Quantity",
-  od.discount_rate AS "Discount",
-  ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2) AS "ExtendedPrice",
-  o.freight_amount AS "Freight"
+CREATE VIEW invoices AS
+SELECT o.ship_name, o.ship_address, o.ship_city, o.ship_region, o.ship_postal_code,
+  o.ship_country, o.customer_id, c.company_name AS customer_name, c.address, c.city,
+  c.region, c.postal_code, c.country,
+  (e.first_name || ' ' || e.last_name) AS salesperson,
+  o.order_id, o.ordered_at, o.required_at, o.shipped_at, s.company_name AS shipper_name,
+  od.product_id, p.product_name, od.unit_price, od.quantity,
+  od.discount_rate,
+  ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2) AS extended_price,
+  o.freight_amount
 FROM shippers s
   INNER JOIN (
     products p INNER JOIN (
@@ -280,175 +280,175 @@ FROM shippers s
     ON p.product_id = od.product_id)
   ON s.shipper_id = o.shipper_id;
 
-CREATE VIEW "Order Details Extended" AS
-SELECT od.order_id AS "OrderID", od.product_id AS "ProductID", p.product_name AS "ProductName",
-  od.unit_price AS "UnitPrice", od.quantity AS "Quantity", od.discount_rate AS "Discount",
-  ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2) AS "ExtendedPrice"
+CREATE VIEW order_details_extended AS
+SELECT od.order_id, od.product_id, p.product_name,
+  od.unit_price, od.quantity, od.discount_rate,
+  ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2) AS extended_price
 FROM products p INNER JOIN order_lines od ON p.product_id = od.product_id;
 
-CREATE VIEW "Order Subtotals" AS
-SELECT od.order_id AS "OrderID",
-  SUM(ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2)) AS "Subtotal"
+CREATE VIEW order_subtotals AS
+SELECT od.order_id,
+  SUM(ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2)) AS subtotal
 FROM order_lines od
 GROUP BY od.order_id;
 
-CREATE VIEW "Product Sales for 1997" AS
-SELECT c.category_name AS "CategoryName", p.product_name AS "ProductName",
-  SUM(ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2)) AS "ProductSales"
+CREATE VIEW product_sales_for_1997 AS
+SELECT c.category_name, p.product_name,
+  SUM(ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2)) AS product_sales
 FROM (categories c INNER JOIN products p ON c.category_id = p.category_id)
   INNER JOIN (orders o INNER JOIN order_lines od ON o.order_id = od.order_id)
   ON p.product_id = od.product_id
 WHERE o.shipped_at BETWEEN '19970101' AND '19971231'
 GROUP BY c.category_name, p.product_name;
 
-CREATE VIEW "Category Sales for 1997" AS
-SELECT ps."CategoryName", SUM(ps."ProductSales") AS "CategorySales"
-FROM "Product Sales for 1997" ps
-GROUP BY ps."CategoryName";
+CREATE VIEW category_sales_for_1997 AS
+SELECT ps.category_name, SUM(ps.product_sales) AS category_sales
+FROM product_sales_for_1997 ps
+GROUP BY ps.category_name;
 
-CREATE VIEW "Sales by Category" AS
-SELECT c.category_id AS "CategoryID", c.category_name AS "CategoryName", p.product_name AS "ProductName",
-  SUM(ode."ExtendedPrice") AS "ProductSales"
+CREATE VIEW sales_by_category AS
+SELECT c.category_id, c.category_name, p.product_name,
+  SUM(ode.extended_price) AS product_sales
 FROM categories c
   INNER JOIN (products p
-    INNER JOIN (orders o INNER JOIN "Order Details Extended" ode ON o.order_id = ode."OrderID")
-    ON p.product_id = ode."ProductID")
+    INNER JOIN (orders o INNER JOIN order_details_extended ode ON o.order_id = ode.order_id)
+    ON p.product_id = ode.product_id)
   ON c.category_id = p.category_id
 WHERE o.ordered_at BETWEEN '19970101' AND '19971231'
 GROUP BY c.category_id, c.category_name, p.product_name;
 
-CREATE VIEW "Sales Totals by Amount" AS
-SELECT os."Subtotal" AS "SaleAmount", o.order_id AS "OrderID", c.company_name AS "CompanyName", o.shipped_at AS "ShippedDate"
+CREATE VIEW sales_totals_by_amount AS
+SELECT os.subtotal AS sale_amount, o.order_id, c.company_name, o.shipped_at
 FROM customers c
-  INNER JOIN (orders o INNER JOIN "Order Subtotals" os ON o.order_id = os."OrderID")
+  INNER JOIN (orders o INNER JOIN order_subtotals os ON o.order_id = os.order_id)
   ON c.customer_id = o.customer_id
-WHERE os."Subtotal" > 2500
+WHERE os.subtotal > 2500
   AND o.shipped_at BETWEEN '19970101' AND '19971231';
 
-CREATE VIEW "Summary of Sales by Quarter" AS
-SELECT o.shipped_at AS "ShippedDate", o.order_id AS "OrderID", os."Subtotal"
-FROM orders o INNER JOIN "Order Subtotals" os ON o.order_id = os."OrderID"
+CREATE VIEW summary_of_sales_by_quarter AS
+SELECT o.shipped_at, o.order_id, os.subtotal
+FROM orders o INNER JOIN order_subtotals os ON o.order_id = os.order_id
 WHERE o.shipped_at IS NOT NULL;
 
-CREATE VIEW "Summary of Sales by Year" AS
-SELECT o.shipped_at AS "ShippedDate", o.order_id AS "OrderID", os."Subtotal"
-FROM orders o INNER JOIN "Order Subtotals" os ON o.order_id = os."OrderID"
+CREATE VIEW summary_of_sales_by_year AS
+SELECT o.shipped_at, o.order_id, os.subtotal
+FROM orders o INNER JOIN order_subtotals os ON o.order_id = os.order_id
 WHERE o.shipped_at IS NOT NULL;
 
 -- === Stored Procedures (converted to PL/pgSQL functions) ===
 
-CREATE OR REPLACE FUNCTION "CustOrdersDetail"(p_OrderID integer)
+CREATE OR REPLACE FUNCTION cust_orders_detail(p_order_id integer)
 RETURNS TABLE(
-  "ProductName" varchar,
-  "UnitPrice" numeric,
-  "Quantity" smallint,
-  "Discount" integer,
-  "ExtendedPrice" numeric
+  product_name varchar,
+  unit_price numeric,
+  quantity smallint,
+  discount integer,
+  extended_price numeric
 ) LANGUAGE sql AS $$
   SELECT
-    p.product_name AS "ProductName",
-    ROUND(od.unit_price, 2) AS "UnitPrice",
-    od.quantity AS "Quantity",
-    CAST(od.discount_rate * 100 AS integer) AS "Discount",
-    ROUND((od.quantity * (1 - od.discount_rate) * od.unit_price)::numeric, 2) AS "ExtendedPrice"
+    p.product_name,
+    ROUND(od.unit_price, 2) AS unit_price,
+    od.quantity,
+    CAST(od.discount_rate * 100 AS integer) AS discount,
+    ROUND((od.quantity * (1 - od.discount_rate) * od.unit_price)::numeric, 2) AS extended_price
   FROM catalog.products p, sales_ordering.order_lines od
   WHERE od.product_id = p.product_id
-    AND od.order_id = p_OrderID;
+    AND od.order_id = p_order_id;
 $$;
 
-CREATE OR REPLACE FUNCTION "CustOrdersOrders"(p_CustomerID char)
+CREATE OR REPLACE FUNCTION cust_orders_orders(p_customer_id char)
 RETURNS TABLE(
-  "OrderID" integer,
-  "OrderDate" timestamp,
-  "RequiredDate" timestamp,
-  "ShippedDate" timestamp
+  order_id integer,
+  ordered_at timestamp,
+  required_at timestamp,
+  shipped_at timestamp
 ) LANGUAGE sql AS $$
-  SELECT order_id AS "OrderID", ordered_at AS "OrderDate", required_at AS "RequiredDate", shipped_at AS "ShippedDate"
+  SELECT order_id, ordered_at, required_at, shipped_at
   FROM sales_ordering.orders
-  WHERE customer_id = p_CustomerID
+  WHERE customer_id = p_customer_id
   ORDER BY order_id;
 $$;
 
-CREATE OR REPLACE FUNCTION "CustOrderHist"(p_CustomerID char)
+CREATE OR REPLACE FUNCTION cust_order_hist(p_customer_id char)
 RETURNS TABLE(
-  "ProductName" varchar,
-  "Total" bigint
+  product_name varchar,
+  total bigint
 ) LANGUAGE sql AS $$
-  SELECT p.product_name AS "ProductName", SUM(od.quantity) AS "Total"
+  SELECT p.product_name, SUM(od.quantity) AS total
   FROM catalog.products p, sales_ordering.order_lines od, sales_ordering.orders o, crm.customers c
-  WHERE c.customer_id = p_CustomerID
+  WHERE c.customer_id = p_customer_id
     AND c.customer_id = o.customer_id
     AND o.order_id = od.order_id
     AND od.product_id = p.product_id
   GROUP BY p.product_name;
 $$;
 
-CREATE OR REPLACE FUNCTION "SalesByCategory"(p_CategoryName varchar, p_OrdYear varchar DEFAULT '1998')
+CREATE OR REPLACE FUNCTION sales_by_category_report(p_category_name varchar, p_ord_year varchar DEFAULT '1998')
 RETURNS TABLE(
-  "ProductName" varchar,
-  "TotalPurchase" numeric
+  product_name varchar,
+  total_purchase numeric
 ) LANGUAGE plpgsql AS $$
 BEGIN
-  IF p_OrdYear NOT IN ('1996', '1997', '1998') THEN
-    p_OrdYear := '1998';
+  IF p_ord_year NOT IN ('1996', '1997', '1998') THEN
+    p_ord_year := '1998';
   END IF;
 
   RETURN QUERY
   SELECT
-    p.product_name AS "ProductName",
-    ROUND(SUM((od.quantity * (1 - od.discount_rate) * od.unit_price)::numeric), 0) AS "TotalPurchase"
+    p.product_name,
+    ROUND(SUM((od.quantity * (1 - od.discount_rate) * od.unit_price)::numeric), 0) AS total_purchase
   FROM sales_ordering.order_lines od, sales_ordering.orders o, catalog.products p, catalog.categories c
   WHERE od.order_id = o.order_id
     AND od.product_id = p.product_id
     AND p.category_id = c.category_id
-    AND c.category_name = p_CategoryName
-    AND SUBSTRING(TO_CHAR(o.ordered_at, 'YYYY-MM-DD'), 1, 4) = p_OrdYear
+    AND c.category_name = p_category_name
+    AND SUBSTRING(TO_CHAR(o.ordered_at, 'YYYY-MM-DD'), 1, 4) = p_ord_year
   GROUP BY p.product_name
   ORDER BY p.product_name;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION "Ten Most Expensive Products"()
+CREATE OR REPLACE FUNCTION ten_most_expensive_products()
 RETURNS TABLE(
-  "TenMostExpensiveProducts" varchar,
-  "UnitPrice" numeric
+  product_name varchar,
+  unit_price numeric
 ) LANGUAGE sql AS $$
-  SELECT p.product_name AS "TenMostExpensiveProducts", p.unit_price AS "UnitPrice"
+  SELECT p.product_name, p.unit_price
   FROM catalog.products p
   ORDER BY p.unit_price DESC
   LIMIT 10;
 $$;
 
-CREATE OR REPLACE FUNCTION "Employee Sales by Country"(
-  p_Beginning_Date timestamp,
-  p_Ending_Date timestamp
+CREATE OR REPLACE FUNCTION employee_sales_by_country(
+  p_beginning_date timestamp,
+  p_ending_date timestamp
 )
 RETURNS TABLE(
-  "Country" varchar,
-  "LastName" varchar,
-  "FirstName" varchar,
-  "ShippedDate" timestamp,
-  "OrderID" integer,
-  "SaleAmount" numeric
+  country varchar,
+  last_name varchar,
+  first_name varchar,
+  shipped_at timestamp,
+  order_id integer,
+  sale_amount numeric
 ) LANGUAGE sql AS $$
-  SELECT e.country AS "Country", e.last_name AS "LastName", e.first_name AS "FirstName", o.shipped_at AS "ShippedDate", o.order_id AS "OrderID", os."Subtotal" AS "SaleAmount"
+  SELECT e.country, e.last_name, e.first_name, o.shipped_at, o.order_id, os.subtotal AS sale_amount
   FROM sales_org.employees e
-    INNER JOIN (sales_ordering.orders o INNER JOIN reporting."Order Subtotals" os ON o.order_id = os."OrderID")
+    INNER JOIN (sales_ordering.orders o INNER JOIN reporting.order_subtotals os ON o.order_id = os.order_id)
     ON e.employee_id = o.employee_id
-  WHERE o.shipped_at BETWEEN p_Beginning_Date AND p_Ending_Date;
+  WHERE o.shipped_at BETWEEN p_beginning_date AND p_ending_date;
 $$;
 
-CREATE OR REPLACE FUNCTION "Sales by Year"(
-  p_Beginning_Date timestamp,
-  p_Ending_Date timestamp
+CREATE OR REPLACE FUNCTION sales_by_year(
+  p_beginning_date timestamp,
+  p_ending_date timestamp
 )
 RETURNS TABLE(
-  "ShippedDate" timestamp,
-  "OrderID" integer,
-  "Subtotal" numeric,
-  "Year" text
+  shipped_at timestamp,
+  order_id integer,
+  subtotal numeric,
+  year text
 ) LANGUAGE sql AS $$
-  SELECT o.shipped_at AS "ShippedDate", o.order_id AS "OrderID", os."Subtotal", TO_CHAR(o.shipped_at, 'YYYY') AS "Year"
-  FROM sales_ordering.orders o INNER JOIN reporting."Order Subtotals" os ON o.order_id = os."OrderID"
-  WHERE o.shipped_at BETWEEN p_Beginning_Date AND p_Ending_Date;
+  SELECT o.shipped_at, o.order_id, os.subtotal, TO_CHAR(o.shipped_at, 'YYYY') AS year
+  FROM sales_ordering.orders o INNER JOIN reporting.order_subtotals os ON o.order_id = os.order_id
+  WHERE o.shipped_at BETWEEN p_beginning_date AND p_ending_date;
 $$;

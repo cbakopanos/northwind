@@ -115,22 +115,22 @@ Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
 
 All views are created in schema `reporting` (with `search_path` set to include transactional schemas).
 
-1. `Customer and Suppliers by City`
-2. `Alphabetical list of products`
-3. `Current Product List`
-4. `Orders Qry`
-5. `Products Above Average Price`
-6. `Products by Category`
-7. `Quarterly Orders`
-8. `Invoices`
-9. `Order Details Extended`
-10. `Order Subtotals`
-11. `Product Sales for 1997`
-12. `Category Sales for 1997`
-13. `Sales by Category`
-14. `Sales Totals by Amount`
-15. `Summary of Sales by Quarter`
-16. `Summary of Sales by Year`
+1. `customer_and_suppliers_by_city`
+2. `alphabetical_list_of_products`
+3. `current_product_list`
+4. `orders_query`
+5. `products_above_average_price`
+6. `products_by_category`
+7. `quarterly_orders`
+8. `invoices`
+9. `order_details_extended`
+10. `order_subtotals`
+11. `product_sales_for_1997`
+12. `category_sales_for_1997`
+13. `sales_by_category`
+14. `sales_totals_by_amount`
+15. `summary_of_sales_by_quarter`
+16. `summary_of_sales_by_year`
 
 These are read-model style SQL objects, mostly oriented to reporting and denormalized querying.
 
@@ -140,13 +140,13 @@ These are read-model style SQL objects, mostly oriented to reporting and denorma
 
 All functions are created in schema `reporting` (with `search_path` set to include transactional schemas).
 
-1. `CustOrdersDetail(p_OrderID integer)`
-2. `CustOrdersOrders(p_CustomerID char)`
-3. `CustOrderHist(p_CustomerID char)`
-4. `SalesByCategory(p_CategoryName varchar, p_OrdYear varchar default '1998')`
-5. `Ten Most Expensive Products()`
-6. `Employee Sales by Country(p_Beginning_Date timestamp, p_Ending_Date timestamp)`
-7. `Sales by Year(p_Beginning_Date timestamp, p_Ending_Date timestamp)`
+1. `cust_orders_detail(p_order_id integer)`
+2. `cust_orders_orders(p_customer_id char)`
+3. `cust_order_hist(p_customer_id char)`
+4. `sales_by_category_report(p_category_name varchar, p_ord_year varchar default '1998')`
+5. `ten_most_expensive_products()`
+6. `employee_sales_by_country(p_beginning_date timestamp, p_ending_date timestamp)`
+7. `sales_by_year(p_beginning_date timestamp, p_ending_date timestamp)`
 
 ---
 
@@ -241,7 +241,7 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 
 ## 7) Naming and migration notes
 
-> **Convention note:** Physical database object names follow `snake_case` for tables, columns, and sequences. Legacy Northwind names are preserved only as reporting output aliases where needed for compatibility.
+> **Convention note:** Physical database object names follow `snake_case` for tables, columns, views, and sequences.
 
 - Physical partitioning by bounded context is implemented using schemas in one database.
 - Physical table names are standardized to unquoted snake_case.
