@@ -241,6 +241,8 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 
 ## 7) Naming and migration notes
 
+> **Convention note:** Physical database object names follow `snake_case` for tables, columns, and sequences. Legacy Northwind names are preserved only as reporting output aliases where needed for compatibility.
+
 - Physical partitioning by bounded context is implemented using schemas in one database.
 - Physical table names are standardized to unquoted snake_case.
 - Current safety mode keeps both intra-context and cross-context foreign keys active.
