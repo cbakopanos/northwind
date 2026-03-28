@@ -33,7 +33,10 @@ Run API:
    - `GET /api/sales-org/health`
    - `GET /api/supplier/health`
    - `GET /api/reporting/health`
-3. Inspect OpenAPI contract (Development only):
+3. Verify supplier reads:
+   - `GET /api/supplier/suppliers` (summary list)
+   - `GET /api/supplier/suppliers/{supplierId}` (full details)
+4. Inspect OpenAPI contract (Development only):
    - `/openapi/v1.json`
    - Note: OpenAPI is mapped only when `ASPNETCORE_ENVIRONMENT=Development`.
 

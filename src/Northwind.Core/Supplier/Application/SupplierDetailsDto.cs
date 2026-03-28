@@ -1,6 +1,6 @@
 namespace Northwind.Supplier.Application;
 
-public sealed record SupplierListItem(
+public sealed record SupplierDetailsDto(
     int SupplierId,
     string CompanyName,
     string? ContactName,

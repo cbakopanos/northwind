@@ -7,3 +7,7 @@ Accept: application/json
 ### Supplier - Get All Suppliers
 GET {{baseUrl}}/api/supplier/suppliers
 Accept: application/json
+
+### Supplier - Get Supplier By Id
+GET {{baseUrl}}/api/supplier/suppliers/1
+Accept: application/json
