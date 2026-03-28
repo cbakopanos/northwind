@@ -15,7 +15,7 @@ public sealed class SupplierModule : IModule
 {
     public IServiceCollection AddModule(IServiceCollection services)
     {
-        services.AddScoped<IGetAllSuppliers, GetAllSuppliersQuery>();
+        services.AddScoped<ISuppliersRepository, SuppliersRepository>();
 
         return services;
     }
@@ -30,7 +30,7 @@ public sealed class SupplierModule : IModule
 
         endpoints.MapGet(
             "/api/supplier/suppliers",
-            async (IGetAllSuppliers query, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
+            async (ISuppliersRepository query, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
             {
                 logger.LogInformation("Handling {Endpoint}", "GET /api/supplier/suppliers");
 

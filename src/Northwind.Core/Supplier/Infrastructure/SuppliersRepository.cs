@@ -15,14 +15,7 @@ public sealed class SuppliersRepository(
         var suppliers = await dbContext.Suppliers
             .AsNoTracking()
             .OrderBy(x => x.CompanyName)
-            .Select(x => new SupplierListItem(
-                x.SupplierId,
-                x.CompanyName,
-                x.ContactName,
-                x.ContactTitle,
-                x.City,
-                x.Country,
-                x.Phone))
+            .Select(SupplierMappings.ToListItem)
             .ToListAsync(cancellationToken);
 
         logger.LogInformation("Fetched {SupplierCount} suppliers from database", suppliers.Count);
