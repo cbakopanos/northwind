@@ -20,128 +20,128 @@ erDiagram
     SALES_ORG_TERRITORIES ||--o{ SALES_ORG_EMPLOYEE_TERRITORIES : includes
 
     SALES_ORG_EMPLOYEES["[sales_org] employees"] {
-        int EmployeeID PK
-        string LastName
-        string FirstName
-        string Title
-        string TitleOfCourtesy
-        datetime BirthDate
-        datetime HireDate
-        string Address
-        string City
-        string Region
-        string PostalCode
-        string Country
-        string HomePhone
-        string Extension
-        bytes Photo
-        text Notes
-        int ReportsTo FK
-        string PhotoPath
+        int employee_id PK
+        string last_name
+        string first_name
+        string title
+        string courtesy_title
+        datetime birth_date
+        datetime hired_at
+        string address
+        string city
+        string region
+        string postal_code
+        string country
+        string home_phone
+        string extension
+        bytes photo
+        text notes
+        int manager_employee_id FK
+        string photo_path
     }
 
     CATALOG_CATEGORIES["[catalog] categories"] {
-        int CategoryID PK
-        string CategoryName
-        text Description
-        bytes Picture
+        int category_id PK
+        string category_name
+        text description
+        bytes picture
     }
 
     CRM_CUSTOMERS["[crm] customers"] {
-        string CustomerID PK
-        string CompanyName
-        string ContactName
-        string ContactTitle
-        string Address
-        string City
-        string Region
-        string PostalCode
-        string Country
-        string Phone
-        string Fax
+        string customer_id PK
+        string company_name
+        string contact_name
+        string contact_title
+        string address
+        string city
+        string region
+        string postal_code
+        string country
+        string phone
+        string fax
     }
 
     FULFILLMENT_SHIPPERS["[fulfillment] shippers"] {
-        int ShipperID PK
-        string CompanyName
-        string Phone
+        int shipper_id PK
+        string company_name
+        string phone
     }
 
     SUPPLIER_SUPPLIERS["[supplier] suppliers"] {
-        int SupplierID PK
-        string CompanyName
-        string ContactName
-        string ContactTitle
-        string Address
-        string City
-        string Region
-        string PostalCode
-        string Country
-        string Phone
-        string Fax
-        text HomePage
+        int supplier_id PK
+        string company_name
+        string contact_name
+        string contact_title
+        string address
+        string city
+        string region
+        string postal_code
+        string country
+        string phone
+        string fax
+        text homepage_url
     }
 
     SALES_ORDERING_ORDERS["[sales_ordering] orders"] {
-        int OrderID PK
-        string CustomerID FK
-        int EmployeeID FK
-        datetime OrderDate
-        datetime RequiredDate
-        datetime ShippedDate
-        int ShipVia FK
-        numeric Freight
-        string ShipName
-        string ShipAddress
-        string ShipCity
-        string ShipRegion
-        string ShipPostalCode
-        string ShipCountry
+        int order_id PK
+        string customer_id FK
+        int employee_id FK
+        datetime ordered_at
+        datetime required_at
+        datetime shipped_at
+        int shipper_id FK
+        numeric freight_amount
+        string ship_name
+        string ship_address
+        string ship_city
+        string ship_region
+        string ship_postal_code
+        string ship_country
     }
 
     CATALOG_PRODUCTS["[catalog] products"] {
-        int ProductID PK
-        string ProductName
-        int SupplierID FK
-        int CategoryID FK
-        string QuantityPerUnit
-        numeric UnitPrice
-        int UnitsInStock
-        int UnitsOnOrder
-        int ReorderLevel
-        bool Discontinued
+        int product_id PK
+        string product_name
+        int supplier_id FK
+        int category_id FK
+        string quantity_per_unit
+        numeric unit_price
+        int units_in_stock
+        int units_on_order
+        int reorder_level
+        bool is_discontinued
     }
 
     SALES_ORDERING_ORDER_DETAILS["[sales_ordering] order_lines"] {
-        int OrderID PK, FK
-        int ProductID PK, FK
-        numeric UnitPrice
-        int Quantity
-        float Discount
+        int order_id PK, FK
+        int product_id PK, FK
+        numeric unit_price
+        int quantity
+        float discount_rate
     }
 
     CRM_CUSTOMER_DEMOGRAPHICS["[crm] customer_demographic_types"] {
-        string CustomerTypeID PK
-        text CustomerDesc
+        string customer_type_id PK
+        text customer_description
     }
 
     CRM_CUSTOMER_CUSTOMER_DEMO["[crm] customer_demographic_assignments"] {
-        string CustomerID PK, FK
-        string CustomerTypeID PK, FK
+        string customer_id PK, FK
+        string customer_type_id PK, FK
     }
 
     SALES_ORG_REGION["[sales_org] regions"] {
-        int RegionID PK
-        string RegionDescription
+        int region_id PK
+        string region_description
     }
 
     SALES_ORG_TERRITORIES["[sales_org] territories"] {
-        string TerritoryID PK
-        string TerritoryDescription
-        int RegionID FK
+        string territory_id PK
+        string territory_description
+        int region_id FK
     }
 
     SALES_ORG_EMPLOYEE_TERRITORIES["[sales_org] employee_territory_assignments"] {
-        int EmployeeID PK, FK
-        string TerritoryID PK, FK
+        int employee_id PK, FK
+        string territory_id PK, FK
     }

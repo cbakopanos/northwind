@@ -11,7 +11,7 @@
 
 - [Bootstrap script](database/rundb.sh): starts a local PostgreSQL container and loads schema + seed.
 - [Schema](database/init.sql): schema-partitioned bounded contexts (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`) with tables, constraints, views, and functions.
-- [Seed data](database/seed.sql): dataset load script.
+- [Seed data](database/seed.sql): legacy-form dataset load script (translated to physical snake_case table/column names by bootstrap preprocessing).
 
 ## Quick start
 

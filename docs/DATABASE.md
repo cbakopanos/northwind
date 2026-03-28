@@ -36,77 +36,77 @@ Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
 ## 2.1 Core transactional tables
 
 1. `sales_ordering.orders`
-   - PK: `OrderID`
+   - PK: `order_id`
    - FKs:
-      - `CustomerID -> crm.customers.CustomerID`
-      - `EmployeeID -> sales_org.employees.EmployeeID`
-      - `ShipVia -> fulfillment.shippers.ShipperID`
+      - `customer_id -> crm.customers.customer_id`
+      - `employee_id -> sales_org.employees.employee_id`
+      - `shipper_id -> fulfillment.shippers.shipper_id`
    - Purpose: order header, lifecycle dates, shipping destination and freight.
 
 2. `sales_ordering.order_lines`
-   - Composite PK: (`OrderID`, `ProductID`)
+   - Composite PK: (`order_id`, `product_id`)
    - FKs:
-      - `OrderID -> sales_ordering.orders.OrderID`
-      - `ProductID -> catalog.products.ProductID`
+      - `order_id -> sales_ordering.orders.order_id`
+      - `product_id -> catalog.products.product_id`
    - Purpose: line items with unit price snapshot, quantity, and discount.
 
 3. `catalog.products`
-   - PK: `ProductID`
+   - PK: `product_id`
    - FKs:
-      - `SupplierID -> supplier.suppliers.SupplierID`
-      - `CategoryID -> catalog.categories.CategoryID`
+      - `supplier_id -> supplier.suppliers.supplier_id`
+      - `category_id -> catalog.categories.category_id`
    - Purpose: product catalog and inventory/sellability metadata.
 
 ## 2.2 Master/reference tables
 
 4. `crm.customers`
-   - PK: `CustomerID`
+   - PK: `customer_id`
    - Purpose: customer profile and contact/address information.
 
 5. `sales_org.employees`
-   - PK: `EmployeeID`
-   - Self-FK: `ReportsTo -> sales_org.employees.EmployeeID`
+   - PK: `employee_id`
+   - Self-FK: `manager_employee_id -> sales_org.employees.employee_id`
    - Purpose: employee profile and manager hierarchy.
 
 6. `fulfillment.shippers`
-   - PK: `ShipperID`
+   - PK: `shipper_id`
    - Purpose: shipping providers.
 
 7. `supplier.suppliers`
-   - PK: `SupplierID`
+   - PK: `supplier_id`
    - Purpose: supplier profile and contacts.
 
 8. `catalog.categories`
-   - PK: `CategoryID`
+   - PK: `category_id`
    - Purpose: product category metadata.
 
 ## 2.3 Relationship/association tables
 
 9. `crm.customer_demographic_types`
-   - PK: `CustomerTypeID`
+   - PK: `customer_type_id`
    - Purpose: demographic type dictionary.
 
 10. `crm.customer_demographic_assignments`
-   - Composite PK: (`CustomerID`, `CustomerTypeID`)
+   - Composite PK: (`customer_id`, `customer_type_id`)
    - FKs:
-   - `CustomerID -> crm.customers.CustomerID`
-   - `CustomerTypeID -> crm.customer_demographic_types.CustomerTypeID`
+   - `customer_id -> crm.customers.customer_id`
+   - `customer_type_id -> crm.customer_demographic_types.customer_type_id`
    - Purpose: many-to-many link between customers and demographic tags.
 
 11. `sales_org.regions`
-   - PK: `RegionID`
+   - PK: `region_id`
    - Purpose: region catalog.
 
 12. `sales_org.territories`
-   - PK: `TerritoryID`
-   - FK: `RegionID -> sales_org.regions.RegionID`
+   - PK: `territory_id`
+   - FK: `region_id -> sales_org.regions.region_id`
    - Purpose: territory catalog per region.
 
 13. `sales_org.employee_territory_assignments`
-   - Composite PK: (`EmployeeID`, `TerritoryID`)
+   - Composite PK: (`employee_id`, `territory_id`)
    - FKs:
-   - `EmployeeID -> sales_org.employees.EmployeeID`
-   - `TerritoryID -> sales_org.territories.TerritoryID`
+   - `employee_id -> sales_org.employees.employee_id`
+   - `territory_id -> sales_org.territories.territory_id`
    - Purpose: many-to-many assignment between employees and territories.
 
 ---
@@ -157,9 +157,13 @@ All functions are created in schema `reporting` (with `search_path` set to inclu
 - `LastName` on (`LastName`)
 - `PostalCode` on (`PostalCode`)
 
+Physical indexed columns: `last_name`, `postal_code`
+
 ## 5.2 Categories
 
 - `CategoryName` on (`CategoryName`)
+
+Physical indexed column: `category_name`
 
 ## 5.3 Customers
 
@@ -168,36 +172,40 @@ All functions are created in schema `reporting` (with `search_path` set to inclu
 - `PostalCode_Customers` on (`PostalCode`)
 - `Region_Customers` on (`Region`)
 
+Physical indexed columns: `city`, `company_name`, `postal_code`, `region`
+
 ## 5.4 Suppliers
 
 - `CompanyName_Suppliers` on (`CompanyName`)
 - `PostalCode_Suppliers` on (`PostalCode`)
 
+Physical indexed columns: `company_name`, `postal_code`
+
 ## 5.5 Orders
 
-- `CustomerID_Orders` on (`CustomerID`)
-- `CustomersOrders` on (`CustomerID`)
-- `EmployeeID_Orders` on (`EmployeeID`)
-- `EmployeesOrders` on (`EmployeeID`)
-- `OrderDate` on (`OrderDate`)
-- `ShippedDate` on (`ShippedDate`)
-- `ShipPostalCode` on (`ShipPostalCode`)
-- `ShippersOrders` on (`ShipVia`)
+- `CustomerID_Orders` on (`customer_id`)
+- `CustomersOrders` on (`customer_id`)
+- `EmployeeID_Orders` on (`employee_id`)
+- `EmployeesOrders` on (`employee_id`)
+- `OrderDate` on (`ordered_at`)
+- `ShippedDate` on (`shipped_at`)
+- `ShipPostalCode` on (`ship_postal_code`)
+- `ShippersOrders` on (`shipper_id`)
 
 ## 5.6 Products
 
-- `CategoryID_Products` on (`CategoryID`)
-- `CategoriesProducts` on (`CategoryID`)
-- `ProductName_Products` on (`ProductName`)
-- `SupplierID_Products` on (`SupplierID`)
-- `SuppliersProducts` on (`SupplierID`)
+- `CategoryID_Products` on (`category_id`)
+- `CategoriesProducts` on (`category_id`)
+- `ProductName_Products` on (`product_name`)
+- `SupplierID_Products` on (`supplier_id`)
+- `SuppliersProducts` on (`supplier_id`)
 
 ## 5.7 Order Details
 
-- `OrderID_OrderDetails` on (`OrderID`)
-- `OrdersOrder_Details` on (`OrderID`)
-- `ProductID_OrderDetails` on (`ProductID`)
-- `ProductsOrder_Details` on (`ProductID`)
+- `OrderID_OrderDetails` on (`order_id`)
+- `OrdersOrder_Details` on (`order_id`)
+- `ProductID_OrderDetails` on (`product_id`)
+- `ProductsOrder_Details` on (`product_id`)
 
 Note: some indexes are intentionally duplicated from original Northwind naming/compatibility conventions.
 
@@ -207,7 +215,7 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 
 ### Primary keys
 
-- Every table has a PK; three are composite: `Order Details`, `CustomerCustomerDemo`, `EmployeeTerritories`.
+- Every table has a PK; three are composite: `order_lines`, `customer_demographic_assignments`, `employee_territory_assignments`.
 
 ### Foreign keys
 
@@ -218,16 +226,16 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
    - `sales_org.territories` -> `sales_org.regions`
    - `sales_org.employee_territory_assignments` -> `sales_org.employees`, `sales_org.territories`
    - `crm.customer_demographic_assignments` -> `crm.customers`, `crm.customer_demographic_types`
-   - `sales_org.employees.ReportsTo` -> `sales_org.employees`
+   - `sales_org.employees.manager_employee_id` -> `sales_org.employees.employee_id`
 
 ### Check constraints
 
-- `Employees`: `BirthDate < CURRENT_TIMESTAMP`
-- `Products`: non-negative `UnitPrice`, `ReorderLevel`, `UnitsInStock`, `UnitsOnOrder`
-- `Order Details`:
-  - `Discount` in `[0, 1]`
-  - `Quantity > 0`
-  - `UnitPrice >= 0`
+- `employees`: `birth_date < CURRENT_TIMESTAMP`
+- `products`: non-negative `unit_price`, `reorder_level`, `units_in_stock`, `units_on_order`
+- `order_lines`:
+   - `discount_rate` in `[0, 1]`
+   - `quantity > 0`
+   - `unit_price >= 0`
 
 ---
 
@@ -236,7 +244,8 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 - Physical partitioning by bounded context is implemented using schemas in one database.
 - Physical table names are standardized to unquoted snake_case.
 - Current safety mode keeps both intra-context and cross-context foreign keys active.
-- `database/seed.sql` remains in legacy naming format; [database/rundb.sh](../database/rundb.sh) rewrites legacy `INSERT INTO` table names to physical snake_case names during bootstrap.
+- Physical column names are also standardized to unquoted snake_case.
+- `database/seed.sql` remains in legacy naming format; [database/rundb.sh](../database/rundb.sh) rewrites legacy `INSERT INTO` table and column names to physical snake_case names during bootstrap.
 - Functions are implemented via `CREATE OR REPLACE FUNCTION` (instead of SQL Server procedures).
 - [database/rundb.sh](../database/rundb.sh) includes seed preprocessing to normalize legacy script fragments before execution.
 

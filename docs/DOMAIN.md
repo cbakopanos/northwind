@@ -37,11 +37,11 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 | FK Constraint | Source (schema.table.column) | Target (schema.table.column) | Source Context | Target Context | Status |
 |---|---|---|---|---|---|
-| `FK_Orders_Customers` | `sales_ordering.orders.CustomerID` | `crm.customers.CustomerID` | Sales Ordering | Customer Management (CRM) | Planned for phased decoupling |
-| `FK_Orders_Employees` | `sales_ordering.orders.EmployeeID` | `sales_org.employees.EmployeeID` | Sales Ordering | Sales Organization | Planned for phased decoupling |
-| `FK_Orders_Shippers` | `sales_ordering.orders.ShipVia` | `fulfillment.shippers.ShipperID` | Sales Ordering | Fulfillment & Shipping | Planned for phased decoupling |
-| `FK_Order_Details_Products` | `sales_ordering.order_lines.ProductID` | `catalog.products.ProductID` | Sales Ordering | Product Catalog | Planned for phased decoupling |
-| `FK_Products_Suppliers` | `catalog.products.SupplierID` | `supplier.suppliers.SupplierID` | Product Catalog | Supplier Management | Planned for phased decoupling |
+| `FK_Orders_Customers` | `sales_ordering.orders.customer_id` | `crm.customers.customer_id` | Sales Ordering | Customer Management (CRM) | Planned for phased decoupling |
+| `FK_Orders_Employees` | `sales_ordering.orders.employee_id` | `sales_org.employees.employee_id` | Sales Ordering | Sales Organization | Planned for phased decoupling |
+| `FK_Orders_Shippers` | `sales_ordering.orders.shipper_id` | `fulfillment.shippers.shipper_id` | Sales Ordering | Fulfillment & Shipping | Planned for phased decoupling |
+| `FK_Order_Details_Products` | `sales_ordering.order_lines.product_id` | `catalog.products.product_id` | Sales Ordering | Product Catalog | Planned for phased decoupling |
+| `FK_Products_Suppliers` | `catalog.products.supplier_id` | `supplier.suppliers.supplier_id` | Product Catalog | Supplier Management | Planned for phased decoupling |
 
 ## 2.1 Sales Ordering (Core Domain)
 
@@ -82,11 +82,11 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 - Product identity and metadata.
 - Category structure and assignment.
-- Product sellability (`Discontinued`).
+- Product sellability (`is_discontinued`).
 
 **Owns language**
 
-- Product, Category, Discontinued, UnitPrice, ReorderLevel.
+- Product, Category, `is_discontinued`, `unit_price`, `reorder_level`.
 
 ---
 
@@ -122,7 +122,7 @@ The following foreign keys currently cross bounded-context boundaries and are in
 **Primary tables**
 
 - `shippers`
-- Shipping fields currently stored on `orders` (`ShipVia`, `ShippedDate`, destination fields)
+- Shipping fields currently stored on `orders` (`shipper_id`, `shipped_at`, destination fields)
 
 **Key responsibilities**
 
@@ -169,7 +169,7 @@ The following foreign keys currently cross bounded-context boundaries and are in
 **Primary tables**
 
 - `suppliers`
-- Product supplier reference via `products.SupplierID`
+- Product supplier reference via `products.supplier_id`
 
 **Key responsibilities**
 
@@ -620,7 +620,8 @@ This section defines command/event/repository boundaries for each context.
 ### Current status
 
 - Physical partitioning by bounded context is implemented with schemas in [../database/init.sql](../database/init.sql).
-- [../database/seed.sql](../database/seed.sql) is aligned via `search_path` so legacy insert statements load correctly into the new schemas.
+- Physical table and column names are standardized to snake_case in [../database/init.sql](../database/init.sql).
+- [../database/seed.sql](../database/seed.sql) remains in legacy naming style; [../database/rundb.sh](../database/rundb.sh) rewrites legacy table/column identifiers during bootstrap.
 - Cross-context and intra-context foreign keys are both active in the current state for strong DB-level referential integrity.
 
 ### Next steps
@@ -682,9 +683,14 @@ This pass confirms consistency between schema, scripts, and domain docs.
 - Cross-context foreign keys are also enforced for now (transitional safety).
 - Planned long-term option: selectively replace cross-context FKs with integration/event consistency once middleware reliability controls are in place.
 
-### 8.5 Schema-to-domain deltas (intentional)
+## 8.5 Schema-to-domain deltas (intentional)
 
-- In [../database/init.sql](../database/init.sql), `orders.CustomerID`, `orders.EmployeeID`, and `orders.ShipVia` are nullable.
+- In [../database/init.sql](../database/init.sql), `orders.customer_id`, `orders.employee_id`, and `orders.shipper_id` are nullable.
   - Domain command contracts may enforce stricter rules for new writes (for example, requiring `customerId`/`employeeId` before `PlaceOrder`).
   - Nullable values remain relevant for historical imports and legacy compatibility.
 - Database check constraints in `products` and `order_lines` are reflected in aggregate invariants, while lifecycle rules (for example, `Draft -> Placed -> Shipped`) remain domain-level behavior.
+
+### 8.7 Naming convention clarification
+
+- Database/DDL docs use physical snake_case names (for example, `ordered_at`, `discount_rate`, `manager_employee_id`).
+- Domain contract examples intentionally use domain-style argument names (for example, `orderId`, `customerId`) to keep API semantics language-agnostic.

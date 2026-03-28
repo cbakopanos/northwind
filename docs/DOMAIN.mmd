@@ -22,7 +22,7 @@ flowchart LR
     SUP -->|"Supplier* events"| REP
     FUL -->|"Shipment/Shipper events"| REP
 
-    SO -.->|"ACL for legacy SQL naming\n(e.g., Order Details)"| PC
+    SO -.->|"ACL for legacy SQL naming\n(e.g., Order Details -> order_lines)"| PC
     SO -.->|"ACL"| CRM
     SO -.->|"ACL"| ORG
     SO -.->|"ACL"| FUL
