@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Fulfillment.Application;
+using Northwind.Fulfillment.Controllers;
 using Northwind.Fulfillment.Infrastructure;
-using Northwind.Fulfillment.Presentation;
 
 namespace Northwind.Fulfillment;
 
@@ -14,7 +14,7 @@ public static class FulfillmentModule
         services
             .AddFulfillmentApplication()
             .AddFulfillmentInfrastructure(configuration)
-            .AddFulfillmentPresentation();
+            .AddFulfillmentControllers();
 
         return services;
     }

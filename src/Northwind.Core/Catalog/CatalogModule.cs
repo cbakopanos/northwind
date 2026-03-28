@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Catalog.Application;
+using Northwind.Catalog.Controllers;
 using Northwind.Catalog.Infrastructure;
-using Northwind.Catalog.Presentation;
 
 namespace Northwind.Catalog;
 
@@ -14,7 +14,7 @@ public static class CatalogModule
         services
             .AddCatalogApplication()
             .AddCatalogInfrastructure(configuration)
-            .AddCatalogPresentation();
+            .AddCatalogControllers();
 
         return services;
     }

@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Northwind.Supplier.Presentation;
+namespace Northwind.Supplier.Controllers;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddSupplierPresentation(this IServiceCollection services)
+    public static IServiceCollection AddSupplierControllers(this IServiceCollection services)
     {
-        // TODO: Register Supplier presentation services.
+        // TODO: Register Supplier controllers and API presentation services.
         return services;
     }
 

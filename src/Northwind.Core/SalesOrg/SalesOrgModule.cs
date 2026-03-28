@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.SalesOrg.Application;
+using Northwind.SalesOrg.Controllers;
 using Northwind.SalesOrg.Infrastructure;
-using Northwind.SalesOrg.Presentation;
 
 namespace Northwind.SalesOrg;
 
@@ -14,7 +14,7 @@ public static class SalesOrgModule
         services
             .AddSalesOrgApplication()
             .AddSalesOrgInfrastructure(configuration)
-            .AddSalesOrgPresentation();
+            .AddSalesOrgControllers();
 
         return services;
     }

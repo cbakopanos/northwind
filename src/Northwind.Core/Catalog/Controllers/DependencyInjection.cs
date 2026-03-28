@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Northwind.Catalog.Presentation;
+namespace Northwind.Catalog.Controllers;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddCatalogPresentation(this IServiceCollection services)
+    public static IServiceCollection AddCatalogControllers(this IServiceCollection services)
     {
-        // TODO: Register Catalog presentation services.
+        // TODO: Register Catalog controllers and API presentation services.
         return services;
     }
 

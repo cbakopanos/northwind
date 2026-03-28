@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Northwind.Reporting.Presentation;
+namespace Northwind.Reporting.Controllers;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddReportingPresentation(this IServiceCollection services)
+    public static IServiceCollection AddReportingControllers(this IServiceCollection services)
     {
-        // TODO: Register Reporting presentation services.
+        // TODO: Register Reporting controllers and API presentation services.
         return services;
     }
 

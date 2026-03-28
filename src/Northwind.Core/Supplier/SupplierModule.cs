@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Supplier.Application;
+using Northwind.Supplier.Controllers;
 using Northwind.Supplier.Infrastructure;
-using Northwind.Supplier.Presentation;
 
 namespace Northwind.Supplier;
 
@@ -14,7 +14,7 @@ public static class SupplierModule
         services
             .AddSupplierApplication()
             .AddSupplierInfrastructure(configuration)
-            .AddSupplierPresentation();
+            .AddSupplierControllers();
 
         return services;
     }

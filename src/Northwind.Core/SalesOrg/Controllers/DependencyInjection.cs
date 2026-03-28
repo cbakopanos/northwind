@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Northwind.SalesOrg.Presentation;
+namespace Northwind.SalesOrg.Controllers;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddSalesOrgPresentation(this IServiceCollection services)
+    public static IServiceCollection AddSalesOrgControllers(this IServiceCollection services)
     {
-        // TODO: Register SalesOrg presentation services.
+        // TODO: Register SalesOrg controllers and API presentation services.
         return services;
     }
 

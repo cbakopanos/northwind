@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.SalesOrdering.Application;
+using Northwind.SalesOrdering.Controllers;
 using Northwind.SalesOrdering.Infrastructure;
-using Northwind.SalesOrdering.Presentation;
 
 namespace Northwind.SalesOrdering;
 
@@ -14,7 +14,7 @@ public static class SalesOrderingModule
         services
             .AddSalesOrderingApplication()
             .AddSalesOrderingInfrastructure(configuration)
-            .AddSalesOrderingPresentation();
+            .AddSalesOrderingControllers();
 
         return services;
     }

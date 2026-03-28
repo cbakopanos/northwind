@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Crm.Application;
+using Northwind.Crm.Controllers;
 using Northwind.Crm.Infrastructure;
-using Northwind.Crm.Presentation;
 
 namespace Northwind.Crm;
 
@@ -14,7 +14,7 @@ public static class CrmModule
         services
             .AddCrmApplication()
             .AddCrmInfrastructure(configuration)
-            .AddCrmPresentation();
+            .AddCrmControllers();
 
         return services;
     }

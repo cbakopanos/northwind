@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Northwind.Fulfillment.Presentation;
+namespace Northwind.Fulfillment.Controllers;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddFulfillmentPresentation(this IServiceCollection services)
+    public static IServiceCollection AddFulfillmentControllers(this IServiceCollection services)
     {
-        // TODO: Register Fulfillment presentation services.
+        // TODO: Register Fulfillment controllers and API presentation services.
         return services;
     }
 

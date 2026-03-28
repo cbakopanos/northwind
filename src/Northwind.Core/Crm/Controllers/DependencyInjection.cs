@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Northwind.Crm.Presentation;
+namespace Northwind.Crm.Controllers;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddCrmPresentation(this IServiceCollection services)
+    public static IServiceCollection AddCrmControllers(this IServiceCollection services)
     {
-        // TODO: Register Crm presentation services.
+        // TODO: Register Crm controllers and API presentation services.
         return services;
     }
 

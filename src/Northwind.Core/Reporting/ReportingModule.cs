@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Reporting.Application;
+using Northwind.Reporting.Controllers;
 using Northwind.Reporting.Infrastructure;
-using Northwind.Reporting.Presentation;
 
 namespace Northwind.Reporting;
 
@@ -14,7 +14,7 @@ public static class ReportingModule
         services
             .AddReportingApplication()
             .AddReportingInfrastructure(configuration)
-            .AddReportingPresentation();
+            .AddReportingControllers();
 
         return services;
     }
