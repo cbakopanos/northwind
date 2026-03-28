@@ -258,6 +258,8 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 - Start and load DB: [database/rundb.sh](../database/rundb.sh)
 - Schema DDL: [database/init.sql](../database/init.sql)
 - Seed data: [database/seed.sql](../database/seed.sql)
+- Run API host: [src/Northwind.Api](../src/Northwind.Api)
+- API HTTP smoke requests: [src/Northwind.Api/http](../src/Northwind.Api/http)
 - Domain design: [DOMAIN.md](DOMAIN.md)
 - Visual context map: [DOMAIN.mmd](DOMAIN.mmd)
 - Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)

@@ -623,6 +623,8 @@ This section defines command/event/repository boundaries for each context.
 - Physical table and column names are standardized to snake_case in [../database/init.sql](../database/init.sql).
 - [../database/seed.sql](../database/seed.sql) remains in legacy naming style; [../database/rundb.sh](../database/rundb.sh) rewrites legacy table/column identifiers during bootstrap.
 - Cross-context and intra-context foreign keys are both active in the current state for strong DB-level referential integrity.
+- API host/core scaffolding is in place (`src/Northwind.Api` + `src/Northwind.Core`) with per-context modules and health endpoints.
+- Core modules are loaded by attribute-based reflection discovery (`ModuleAttribute`, `IModule`) from the API host.
 
 ### Next steps
 
@@ -677,18 +679,18 @@ This pass confirms consistency between schema, scripts, and domain docs.
 - Outbox/integration transport is planned but not implemented.
 - `Shipment` persistence is still embedded in order shipping fields unless promoted later.
 
-### 8.6 Referential integrity mode (current)
-
-- Intra-context foreign keys are enforced.
-- Cross-context foreign keys are also enforced for now (transitional safety).
-- Planned long-term option: selectively replace cross-context FKs with integration/event consistency once middleware reliability controls are in place.
-
-## 8.5 Schema-to-domain deltas (intentional)
+### 8.5 Schema-to-domain deltas (intentional)
 
 - In [../database/init.sql](../database/init.sql), `orders.customer_id`, `orders.employee_id`, and `orders.shipper_id` are nullable.
   - Domain command contracts may enforce stricter rules for new writes (for example, requiring `customerId`/`employeeId` before `PlaceOrder`).
   - Nullable values remain relevant for historical imports and legacy compatibility.
 - Database check constraints in `products` and `order_lines` are reflected in aggregate invariants, while lifecycle rules (for example, `Draft -> Placed -> Shipped`) remain domain-level behavior.
+
+### 8.6 Referential integrity mode (current)
+
+- Intra-context foreign keys are enforced.
+- Cross-context foreign keys are also enforced for now (transitional safety).
+- Planned long-term option: selectively replace cross-context FKs with integration/event consistency once middleware reliability controls are in place.
 
 ### 8.7 Naming convention clarification
 

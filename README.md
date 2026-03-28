@@ -16,7 +16,9 @@
 ## API setup and inspection
 
 - API project: [src/Northwind.Api](src/Northwind.Api)
+- Core modules project: [src/Northwind.Core](src/Northwind.Core)
 - HTTP request files: [src/Northwind.Api/http](src/Northwind.Api/http)
+- Module loading: attribute + reflection discovery (`ModuleAttribute` + `IModule`) with cached startup scan.
 
 Run API:
 
@@ -33,6 +35,7 @@ Run API:
    - `GET /api/reporting/health`
 3. Inspect OpenAPI contract (Development only):
    - `/openapi/v1.json`
+   - Note: OpenAPI is mapped only when `ASPNETCORE_ENVIRONMENT=Development`.
 
 ## Quick start
 
