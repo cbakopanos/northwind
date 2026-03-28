@@ -31,6 +31,18 @@ The goal is to move from table-centric design to domain-centric design by:
 
 ## 2) Bounded Contexts
 
+### 2.0 Cross-context FK backlog (transitional)
+
+The following foreign keys currently cross bounded-context boundaries and are intentionally kept for transitional safety. They are planned to be reviewed and relaxed one by one later.
+
+| FK Constraint | Source (schema.table.column) | Target (schema.table.column) | Source Context | Target Context | Status |
+|---|---|---|---|---|---|
+| `FK_Orders_Customers` | `sales_ordering."Orders"."CustomerID"` | `crm."Customers"."CustomerID"` | Sales Ordering | Customer Management (CRM) | Planned for phased decoupling |
+| `FK_Orders_Employees` | `sales_ordering."Orders"."EmployeeID"` | `sales_org."Employees"."EmployeeID"` | Sales Ordering | Sales Organization | Planned for phased decoupling |
+| `FK_Orders_Shippers` | `sales_ordering."Orders"."ShipVia"` | `fulfillment."Shippers"."ShipperID"` | Sales Ordering | Fulfillment & Shipping | Planned for phased decoupling |
+| `FK_Order_Details_Products` | `sales_ordering."Order Details"."ProductID"` | `catalog."Products"."ProductID"` | Sales Ordering | Product Catalog | Planned for phased decoupling |
+| `FK_Products_Suppliers` | `catalog."Products"."SupplierID"` | `supplier."Suppliers"."SupplierID"` | Product Catalog | Supplier Management | Planned for phased decoupling |
+
 ## 2.1 Sales Ordering (Core Domain)
 
 **Purpose**
