@@ -3,3 +3,7 @@
 ### Supplier - Health
 GET {{baseUrl}}/api/supplier/health
 Accept: application/json
+
+### Supplier - Get All Suppliers
+GET {{baseUrl}}/api/supplier/suppliers
+Accept: application/json
