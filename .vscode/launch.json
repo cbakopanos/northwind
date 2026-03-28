@@ -2,13 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Northwind.Api (https)",
-      "type": "dotnet",
-      "request": "launch",
-      "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj"
-    },
-    {
-      "name": "Northwind.Api (http)",
+      "name": "Northwind.Api",
       "type": "dotnet",
       "request": "launch",
       "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj"

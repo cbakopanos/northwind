@@ -9,7 +9,12 @@ var app = builder.Build();
 
 app.MapGet("/", () => "Northwind API");
 app.MapGet("/api/health", () => new { service = "Northwind.Api", status = "ok" });
-app.MapOpenApi();
+
+if (app.Environment.IsDevelopment())
+{
+	app.MapOpenApi();
+}
+
 app.MapNorthwindCoreEndpoints();
 
 app.Run();
