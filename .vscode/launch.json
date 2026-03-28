@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Northwind.Api (https)",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj",
+      "launchSettingsProfile": "https"
+    },
+    {
+      "name": "Northwind.Api (http)",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj",
+      "launchSettingsProfile": "http"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Add shared package versions here when PackageReference dependencies are introduced. -->
+    <!-- Example: <PackageVersion Include="Npgsql" Version="8.0.6" /> -->
+  </ItemGroup>
+</Project>
