@@ -238,7 +238,7 @@ SELECT p.product_id, p.product_name
 FROM products p
 WHERE p.is_discontinued = false;
 
-CREATE VIEW orders_query AS
+CREATE VIEW orders_with_customer_details AS
 SELECT o.order_id, o.customer_id, o.employee_id, o.ordered_at, o.required_at,
   o.shipped_at, o.shipper_id, o.freight_amount, o.ship_name, o.ship_address, o.ship_city,
   o.ship_region, o.ship_postal_code, o.ship_country,
@@ -255,10 +255,9 @@ SELECT c.category_name, p.product_name, p.quantity_per_unit, p.units_in_stock, p
 FROM categories c INNER JOIN products p ON c.category_id = p.category_id
 WHERE p.is_discontinued <> true;
 
-CREATE VIEW quarterly_orders AS
+CREATE VIEW customers_with_orders AS
 SELECT DISTINCT c.customer_id, c.company_name, c.city, c.country
-FROM customers c RIGHT JOIN orders o ON c.customer_id = o.customer_id
-WHERE o.ordered_at BETWEEN '19970101' AND '19971231';
+FROM customers c RIGHT JOIN orders o ON c.customer_id = o.customer_id;
 
 CREATE VIEW invoices AS
 SELECT o.ship_name, o.ship_address, o.ship_city, o.ship_region, o.ship_postal_code,
@@ -292,18 +291,17 @@ SELECT od.order_id,
 FROM order_lines od
 GROUP BY od.order_id;
 
-CREATE VIEW product_sales_for_1997 AS
+CREATE VIEW product_sales AS
 SELECT c.category_name, p.product_name,
   SUM(ROUND((od.unit_price * od.quantity * (1 - od.discount_rate))::numeric, 2)) AS product_sales
 FROM (categories c INNER JOIN products p ON c.category_id = p.category_id)
   INNER JOIN (orders o INNER JOIN order_lines od ON o.order_id = od.order_id)
   ON p.product_id = od.product_id
-WHERE o.shipped_at BETWEEN '19970101' AND '19971231'
 GROUP BY c.category_name, p.product_name;
 
-CREATE VIEW category_sales_for_1997 AS
+CREATE VIEW category_sales AS
 SELECT ps.category_name, SUM(ps.product_sales) AS category_sales
-FROM product_sales_for_1997 ps
+FROM product_sales ps
 GROUP BY ps.category_name;
 
 CREATE VIEW sales_by_category AS
@@ -314,23 +312,21 @@ FROM categories c
     INNER JOIN (orders o INNER JOIN order_details_extended ode ON o.order_id = ode.order_id)
     ON p.product_id = ode.product_id)
   ON c.category_id = p.category_id
-WHERE o.ordered_at BETWEEN '19970101' AND '19971231'
 GROUP BY c.category_id, c.category_name, p.product_name;
 
-CREATE VIEW sales_totals_by_amount AS
+CREATE VIEW sales_totals_above_amount AS
 SELECT os.subtotal AS sale_amount, o.order_id, c.company_name, o.shipped_at
 FROM customers c
   INNER JOIN (orders o INNER JOIN order_subtotals os ON o.order_id = os.order_id)
   ON c.customer_id = o.customer_id
-WHERE os.subtotal > 2500
-  AND o.shipped_at BETWEEN '19970101' AND '19971231';
+WHERE os.subtotal > 2500;
 
-CREATE VIEW summary_of_sales_by_quarter AS
+CREATE VIEW shipped_order_subtotals AS
 SELECT o.shipped_at, o.order_id, os.subtotal
 FROM orders o INNER JOIN order_subtotals os ON o.order_id = os.order_id
 WHERE o.shipped_at IS NOT NULL;
 
-CREATE VIEW summary_of_sales_by_year AS
+CREATE VIEW shipped_order_subtotals_for_yearly_rollup AS
 SELECT o.shipped_at, o.order_id, os.subtotal
 FROM orders o INNER JOIN order_subtotals os ON o.order_id = os.order_id
 WHERE o.shipped_at IS NOT NULL;

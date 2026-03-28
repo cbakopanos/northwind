@@ -118,19 +118,19 @@ All views are created in schema `reporting` (with `search_path` set to include t
 1. `customer_and_suppliers_by_city`
 2. `alphabetical_list_of_products`
 3. `current_product_list`
-4. `orders_query`
+4. `orders_with_customer_details`
 5. `products_above_average_price`
 6. `products_by_category`
-7. `quarterly_orders`
+7. `customers_with_orders`
 8. `invoices`
 9. `order_details_extended`
 10. `order_subtotals`
-11. `product_sales_for_1997`
-12. `category_sales_for_1997`
+11. `product_sales`
+12. `category_sales`
 13. `sales_by_category`
-14. `sales_totals_by_amount`
-15. `summary_of_sales_by_quarter`
-16. `summary_of_sales_by_year`
+14. `sales_totals_above_amount`
+15. `shipped_order_subtotals`
+16. `shipped_order_subtotals_for_yearly_rollup`
 
 These are read-model style SQL objects, mostly oriented to reporting and denormalized querying.
 

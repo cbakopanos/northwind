@@ -190,7 +190,7 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary objects**
 
-- Views/functions like `Invoices`, `Order Subtotals`, `Sales by Year`, `Product Sales for 1997`, etc.
+- Views/functions like `invoices`, `order_subtotals`, `sales_by_year`, `product_sales`, etc.
 
 **Key responsibilities**
 
