@@ -3,7 +3,9 @@
 ## Documentation
 
 - [Domain proposal](docs/DOMAIN.md): DDD proposal with bounded contexts, aggregates, contracts, and context map.
-- [Context map diagram](docs/MAP.mmd): Mermaid visual context map.
+- [Context map diagram](docs/DOMAIN.mmd): Mermaid visual context map.
+- [Database reference](docs/DATABASE.md): tables, views, functions, indexes, and constraints.
+- [ER diagram](docs/DATABASE.mmd): Mermaid entity-relationship diagram.
 
 ## Database setup
 
@@ -18,4 +20,4 @@
 2. Read domain docs:
    - [docs/DOMAIN.md](docs/DOMAIN.md)
 3. Open diagram:
-   - [docs/MAP.mmd](docs/MAP.mmd)
+   - [docs/DOMAIN.mmd](docs/DOMAIN.mmd)

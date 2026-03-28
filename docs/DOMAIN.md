@@ -276,7 +276,7 @@ The goal is to move from table-centric design to domain-centric design by:
 
 - Linked to exactly one order.
 - Cannot ship a cancelled order.
-- `ShippedDate` cannot be before order creation date.
+- `ShippedDate` cannot be before `OrderDate`.
 
 ---
 
@@ -322,7 +322,7 @@ The goal is to move from table-centric design to domain-centric design by:
 
 ## 4) Context Map
 
-Visual diagram: [MAP.mmd](MAP.mmd)
+Visual diagram: [DOMAIN.mmd](DOMAIN.mmd)
 
 ## 4.1 High-level relationships
 
@@ -348,6 +348,23 @@ Visual diagram: [MAP.mmd](MAP.mmd)
 - Product Catalog, CRM, Sales Organization, Fulfillment, Supplier: **Upstream** master data providers.
 - Sales Ordering: **Downstream** consumer and core process owner.
 - Reporting: **Downstream read model** consumer.
+
+## 4.4 Diagram parity (DOMAIN.md <-> DOMAIN.mmd)
+
+The visual map in [DOMAIN.mmd](DOMAIN.mmd) is expected to match these edges exactly:
+
+- `Product Catalog -> Sales Ordering` (`ProductId`, category rules)
+- `Customer Management -> Sales Ordering` (`CustomerId`)
+- `Sales Organization -> Sales Ordering` (`EmployeeId`)
+- `Fulfillment & Shipping -> Sales Ordering` (`ShipperId`)
+- `Supplier Management -> Product Catalog` (`SupplierId` reference)
+- `Sales Ordering -> Reporting` (`OrderPlaced`, `OrderShipped`, `OrderCancelled`)
+- `Product Catalog -> Reporting` (`ProductPriceChanged`, `ProductDiscontinued`)
+- `Customer Management -> Reporting` (`Customer*` events)
+- `Sales Organization -> Reporting` (`Employee*` events)
+- `Supplier Management -> Reporting` (`Supplier*` events)
+- `Fulfillment & Shipping -> Reporting` (`Shipper*` / `Shipment*` events)
+- ACL dashed links from `Sales Ordering` to upstream master-data contexts (`Product Catalog`, `Customer Management`, `Sales Organization`, `Fulfillment & Shipping`).
 
 ---
 
@@ -566,6 +583,7 @@ This section defines command/event/repository boundaries for each context.
 - `Customer*` profile events
 - `Employee*` assignment events
 - `Supplier*` profile events
+- `Shipper*` and `Shipment*` events (when Shipment is promoted to explicit aggregate)
 
 ### Repository boundary
 
@@ -628,7 +646,7 @@ This pass confirms consistency between schema, scripts, and domain docs.
 
 ### 8.3 Context-map alignment
 
-- [MAP.mmd](MAP.mmd) and section 4 describe the same upstream/downstream relationships.
+- [DOMAIN.mmd](DOMAIN.mmd) and section 4 describe the same upstream/downstream relationships.
 - Reporting is modeled as downstream read model consuming events from all transactional contexts.
 
 ### 8.4 Known intentional gaps
@@ -636,3 +654,10 @@ This pass confirms consistency between schema, scripts, and domain docs.
 - Physical database split by bounded context is not implemented yet.
 - Outbox/integration transport is planned but not implemented.
 - `Shipment` persistence is still embedded in order shipping fields unless promoted later.
+
+### 8.5 Schema-to-domain deltas (intentional)
+
+- In [../database/init.sql](../database/init.sql), `Orders.CustomerID`, `Orders.EmployeeID`, and `Orders.ShipVia` are nullable.
+  - Domain command contracts may enforce stricter rules for new writes (for example, requiring `customerId`/`employeeId` before `PlaceOrder`).
+  - Nullable values remain relevant for historical imports and legacy compatibility.
+- Database check constraints in `Products` and `Order Details` are reflected in aggregate invariants, while lifecycle rules (for example, `Draft -> Placed -> Shipped`) remain domain-level behavior.
