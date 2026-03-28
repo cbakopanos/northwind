@@ -6,5 +6,7 @@ public interface ISuppliersRepository
 
     Task<SupplierDetailsDto?> GetByIdAsync(int supplierId, CancellationToken cancellationToken = default);
 
-    Task<int> CreateAsync(CreateSupplierRequest request, CancellationToken cancellationToken = default);
+    Task<int> CreateAsync(SupplierRequest request, CancellationToken cancellationToken = default);
+
+    Task<bool> UpdateAsync(int supplierId, SupplierRequest request, CancellationToken cancellationToken = default);
 }

@@ -60,7 +60,7 @@ public sealed class SupplierModule : IModule
 
         endpoints.MapPost(
             "/api/supplier/suppliers",
-            async (CreateSupplierRequest request, ISuppliersRepository repository, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
+            async (SupplierRequest request, ISuppliersRepository repository, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
             {
                 logger.LogInformation("Handling {Endpoint}", "POST /api/supplier/suppliers");
 
@@ -81,6 +81,35 @@ public sealed class SupplierModule : IModule
             .WithTags("Supplier")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
+
+        endpoints.MapPut(
+            "/api/supplier/suppliers/{supplierId:int}",
+            async (int supplierId, SupplierRequest request, ISuppliersRepository repository, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
+            {
+                logger.LogInformation("Handling {Endpoint} for SupplierId {SupplierId}", "PUT /api/supplier/suppliers/{supplierId:int}", supplierId);
+
+                if (string.IsNullOrWhiteSpace(request.CompanyName))
+                {
+                    logger.LogInformation("Update supplier request rejected for SupplierId {SupplierId}: CompanyName is required", supplierId);
+                    return Results.BadRequest(new { error = "CompanyName is required." });
+                }
+
+                var updated = await repository.UpdateAsync(supplierId, request, cancellationToken);
+
+                if (!updated)
+                {
+                    logger.LogInformation("Supplier {SupplierId} not found for update", supplierId);
+                    return Results.NotFound();
+                }
+
+                logger.LogInformation("Updated supplier {SupplierId}", supplierId);
+                return Results.NoContent();
+            })
+            .WithName("UpdateSupplier")
+            .WithTags("Supplier")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
 
         return endpoints;
     }

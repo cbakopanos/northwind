@@ -42,11 +42,11 @@ public sealed class SuppliersRepository(
         return supplier;
     }
 
-    public async Task<int> CreateAsync(CreateSupplierRequest request, CancellationToken cancellationToken = default)
+    public async Task<int> CreateAsync(SupplierRequest request, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Creating supplier with CompanyName {CompanyName}", request.CompanyName);
 
-        var entity = CreateEntity(request);
+        var entity = new SupplierEntity().ToSupplierEntity(request);
 
         dbContext.Suppliers.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -56,19 +56,23 @@ public sealed class SuppliersRepository(
         return entity.SupplierId;
     }
 
-    private static SupplierEntity CreateEntity(CreateSupplierRequest request) =>
-        new()
+    public async Task<bool> UpdateAsync(int supplierId, SupplierRequest request, CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("Updating supplier {SupplierId}", supplierId);
+
+        var entity = await dbContext.Suppliers
+            .SingleOrDefaultAsync(x => x.SupplierId == supplierId, cancellationToken);
+
+        if (entity is null)
         {
-            CompanyName = request.CompanyName.Trim(),
-            ContactName = request.Contact?.ContactName,
-            ContactTitle = request.Contact?.ContactTitle,
-            Address = request.Address?.AddressLine,
-            City = request.Address?.City,
-            Region = request.Address?.Region,
-            PostalCode = request.Address?.PostalCode,
-            Country = request.Address?.Country,
-            Phone = request.Communication?.Phone,
-            Fax = request.Communication?.Fax,
-            HomepageUrl = request.Communication?.HomepageUrl
-        };
+            logger.LogInformation("Supplier {SupplierId} was not found for update", supplierId);
+            return false;
+        }
+
+        entity.ToSupplierEntity(request);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Updated supplier {SupplierId}", supplierId);
+        return true;
+    }
 }
