@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.SalesOrdering.Application;
-using Northwind.SalesOrdering.Controllers;
 using Northwind.SalesOrdering.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -15,15 +13,8 @@ public sealed class SalesOrderingModule : IModule
     {
         services
             .AddSalesOrderingApplication()
-            .AddSalesOrderingInfrastructure(configuration)
-            .AddSalesOrderingControllers();
+            .AddSalesOrderingInfrastructure(configuration);
 
         return services;
-    }
-
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        endpoints.MapSalesOrderingEndpoints();
-        return endpoints;
     }
 }

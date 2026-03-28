@@ -1,6 +1,4 @@
 using System.Reflection;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Shared.Abstractions;
@@ -19,18 +17,6 @@ public static class NorthwindCoreComposition
         }
 
         return services;
-    }
-
-    public static WebApplication MapNorthwindCoreEndpoints(this WebApplication app)
-    {
-        IEndpointRouteBuilder endpoints = app;
-
-        foreach (var module in Modules.Value)
-        {
-            endpoints = module.MapEndpoints(endpoints);
-        }
-
-        return app;
     }
 
     private static IReadOnlyList<IModule> DiscoverModules()

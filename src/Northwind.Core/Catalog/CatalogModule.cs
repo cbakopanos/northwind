@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Catalog.Application;
-using Northwind.Catalog.Controllers;
 using Northwind.Catalog.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -15,15 +13,8 @@ public sealed class CatalogModule : IModule
     {
         services
             .AddCatalogApplication()
-            .AddCatalogInfrastructure(configuration)
-            .AddCatalogControllers();
+            .AddCatalogInfrastructure(configuration);
 
         return services;
-    }
-
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        endpoints.MapCatalogEndpoints();
-        return endpoints;
     }
 }

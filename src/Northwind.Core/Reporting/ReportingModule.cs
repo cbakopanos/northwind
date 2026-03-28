@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Reporting.Application;
-using Northwind.Reporting.Controllers;
 using Northwind.Reporting.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -15,15 +13,8 @@ public sealed class ReportingModule : IModule
     {
         services
             .AddReportingApplication()
-            .AddReportingInfrastructure(configuration)
-            .AddReportingControllers();
+            .AddReportingInfrastructure(configuration);
 
         return services;
-    }
-
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        endpoints.MapReportingEndpoints();
-        return endpoints;
     }
 }

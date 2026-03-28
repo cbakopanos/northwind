@@ -37,6 +37,13 @@ Run API:
    - `/openapi/v1.json`
    - Note: OpenAPI is mapped only when `ASPNETCORE_ENVIRONMENT=Development`.
 
+### Troubleshooting
+
+- If API startup fails with `address already in use` on `localhost:5019`, stop the process currently using that port:
+   - `lsof -nP -iTCP:5019 -sTCP:LISTEN`
+   - `kill <PID>`
+- Then start the API again.
+
 ## Quick start
 
 1. Run:

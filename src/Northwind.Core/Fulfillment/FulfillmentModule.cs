@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Fulfillment.Application;
-using Northwind.Fulfillment.Controllers;
 using Northwind.Fulfillment.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -15,15 +13,8 @@ public sealed class FulfillmentModule : IModule
     {
         services
             .AddFulfillmentApplication()
-            .AddFulfillmentInfrastructure(configuration)
-            .AddFulfillmentControllers();
+            .AddFulfillmentInfrastructure(configuration);
 
         return services;
-    }
-
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        endpoints.MapFulfillmentEndpoints();
-        return endpoints;
     }
 }

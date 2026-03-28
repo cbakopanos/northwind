@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Crm.Application;
-using Northwind.Crm.Controllers;
 using Northwind.Crm.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -15,15 +13,8 @@ public sealed class CrmModule : IModule
     {
         services
             .AddCrmApplication()
-            .AddCrmInfrastructure(configuration)
-            .AddCrmControllers();
+            .AddCrmInfrastructure(configuration);
 
         return services;
-    }
-
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        endpoints.MapCrmEndpoints();
-        return endpoints;
     }
 }
