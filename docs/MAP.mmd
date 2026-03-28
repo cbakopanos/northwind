@@ -1,0 +1,35 @@
+flowchart LR
+    SO["Sales Ordering\n(Core Domain)"]
+    PC["Product Catalog"]
+    CRM["Customer Management (CRM)"]
+    FUL["Fulfillment & Shipping"]
+    ORG["Sales Organization"]
+    SUP["Supplier Management"]
+    REP["Reporting & Analytics\n(Read Model)"]
+
+    PC -->|"ProductId, category rules"| SO
+    CRM -->|"CustomerId"| SO
+    ORG -->|"EmployeeId"| SO
+    FUL -->|"ShipperId"| SO
+
+    SUP -->|"SupplierId reference"| PC
+
+    SO -->|"OrderPlaced, OrderShipped, OrderCancelled"| REP
+    PC -->|"ProductPriceChanged, ProductDiscontinued"| REP
+    CRM -->|"Customer* events"| REP
+    ORG -->|"Employee* events"| REP
+    SUP -->|"Supplier* events"| REP
+    FUL -->|"Shipment/Shipper events"| REP
+
+    SO -.->|"ACL for legacy SQL naming\n(e.g., Order Details)"| PC
+    SO -.->|"ACL"| CRM
+    SO -.->|"ACL"| ORG
+    SO -.->|"ACL"| FUL
+
+    classDef core fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#111827;
+    classDef upstream fill:#dbeafe,stroke:#1d4ed8,stroke-width:1.5px,color:#111827;
+    classDef downstream fill:#dcfce7,stroke:#166534,stroke-width:1.5px,color:#111827;
+
+    class SO core;
+    class PC,CRM,FUL,ORG,SUP upstream;
+    class REP downstream;

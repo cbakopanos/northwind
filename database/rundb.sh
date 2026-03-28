@@ -2,11 +2,21 @@
 
 set -euo pipefail
 
-CONTAINER_NAME="northwind-db"
-POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="postgres"
-POSTGRES_DB="northwind"
-HOST_PORT="5435"
+CONTAINER_NAME="${CONTAINER_NAME:-northwind-db}"
+POSTGRES_USER="${POSTGRES_USER:-postgres}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
+POSTGRES_DB="${POSTGRES_DB:-northwind}"
+HOST_PORT="${HOST_PORT:-5435}"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required but was not found in PATH."
+  exit 1
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "python3 is required but was not found in PATH."
+  exit 1
+fi
 
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
   echo "Container '${CONTAINER_NAME}' already exists. Remove it first:"
@@ -87,3 +97,4 @@ sys.stdout.write(content if content.endswith('\n') else content + '\n')
 PY
 
 echo "Done. Northwind database is ready at localhost:${HOST_PORT}."
+echo "Connection: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${HOST_PORT}/${POSTGRES_DB}"
