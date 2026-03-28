@@ -58,6 +58,30 @@ public sealed class SupplierModule : IModule
             .Produces<SupplierDetailsDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
+        endpoints.MapPost(
+            "/api/supplier/suppliers",
+            async (CreateSupplierRequest request, ISuppliersRepository repository, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
+            {
+                logger.LogInformation("Handling {Endpoint}", "POST /api/supplier/suppliers");
+
+                if (string.IsNullOrWhiteSpace(request.CompanyName))
+                {
+                    logger.LogInformation("Create supplier request rejected: CompanyName is required");
+                    return Results.BadRequest(new { error = "CompanyName is required." });
+                }
+
+                var createdSupplierId = await repository.CreateAsync(request, cancellationToken);
+
+                logger.LogInformation("Created supplier {SupplierId}", createdSupplierId);
+                return Results.Created(
+                    $"/api/supplier/suppliers/{createdSupplierId}",
+                    new { supplierId = createdSupplierId });
+            })
+            .WithName("CreateSupplier")
+            .WithTags("Supplier")
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
+
         return endpoints;
     }
 }

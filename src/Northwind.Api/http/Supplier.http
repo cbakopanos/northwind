@@ -11,3 +11,28 @@ Accept: application/json
 ### Supplier - Get Supplier By Id
 GET {{baseUrl}}/api/supplier/suppliers/1
 Accept: application/json
+
+### Supplier - Create Supplier
+POST {{baseUrl}}/api/supplier/suppliers
+Content-Type: application/json
+Accept: application/json
+
+{
+	"companyName": "Acme Industrial Partners",
+	"contact": {
+		"contactName": "Alex Cooper",
+		"contactTitle": "Procurement Manager"
+	},
+	"address": {
+		"addressLine": "42 Market Street",
+		"city": "Athens",
+		"region": "Attica",
+		"postalCode": "10552",
+		"country": "Greece"
+	},
+	"communication": {
+		"phone": "+30-210-555-1111",
+		"fax": "+30-210-555-2222",
+		"homepageUrl": "https://acme.example.com"
+	}
+}

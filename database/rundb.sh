@@ -68,7 +68,8 @@ content = re.sub(
   flags=re.IGNORECASE,
 )
 
-# Remove trailing sequence setval statements (not required for this setup run).
+# Remove trailing legacy setval statements from the source seed.
+# We perform a deterministic sequence realignment after loading.
 content = re.sub(r'(?im)^\s*SELECT\s+(?:pg_catalog\.)?setval\(.*$', '', content)
 
 # Add statement terminators before known statement starters when the previous
@@ -249,6 +250,40 @@ content = re.sub(
 
 sys.stdout.write(content if content.endswith('\n') else content + '\n')
 PY
+
+echo "Realigning identity sequences..."
+docker exec -i "${CONTAINER_NAME}" psql -v ON_ERROR_STOP=1 -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" <<'SQL'
+DO $$
+DECLARE
+  rec record;
+BEGIN
+  FOR rec IN
+    SELECT
+      n.nspname AS schema_name,
+      c.relname AS table_name,
+      a.attname AS column_name,
+      pg_get_serial_sequence(format('%I.%I', n.nspname, c.relname), a.attname) AS sequence_name
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN pg_attribute a ON a.attrelid = c.oid
+    WHERE c.relkind = 'r'
+      AND a.attnum > 0
+      AND NOT a.attisdropped
+      AND n.nspname IN ('public', 'catalog', 'crm', 'sales_org', 'sales_ordering', 'fulfillment', 'supplier')
+  LOOP
+    IF rec.sequence_name IS NOT NULL THEN
+      EXECUTE format(
+        'SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 0) + 1, false);',
+        rec.sequence_name,
+        rec.column_name,
+        rec.schema_name,
+        rec.table_name
+      );
+    END IF;
+  END LOOP;
+END;
+$$;
+SQL
 
 echo "Done. Northwind database is ready at localhost:${HOST_PORT}."
 echo "Connection: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${HOST_PORT}/${POSTGRES_DB}"

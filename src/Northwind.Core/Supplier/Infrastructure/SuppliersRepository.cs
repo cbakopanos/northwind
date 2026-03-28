@@ -41,4 +41,34 @@ public sealed class SuppliersRepository(
 
         return supplier;
     }
+
+    public async Task<int> CreateAsync(CreateSupplierRequest request, CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("Creating supplier with CompanyName {CompanyName}", request.CompanyName);
+
+        var entity = CreateEntity(request);
+
+        dbContext.Suppliers.Add(entity);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Created supplier with SupplierId {SupplierId}", entity.SupplierId);
+
+        return entity.SupplierId;
+    }
+
+    private static SupplierEntity CreateEntity(CreateSupplierRequest request) =>
+        new()
+        {
+            CompanyName = request.CompanyName.Trim(),
+            ContactName = request.Contact?.ContactName,
+            ContactTitle = request.Contact?.ContactTitle,
+            Address = request.Address?.AddressLine,
+            City = request.Address?.City,
+            Region = request.Address?.Region,
+            PostalCode = request.Address?.PostalCode,
+            Country = request.Address?.Country,
+            Phone = request.Communication?.Phone,
+            Fax = request.Communication?.Fax,
+            HomepageUrl = request.Communication?.HomepageUrl
+        };
 }
