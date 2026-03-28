@@ -1,5 +1,4 @@
 using Northwind;
-using Northwind.Shared.Abstractions;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +12,6 @@ builder.Logging.AddSimpleConsole(options =>
 });
 
 builder.Services.AddOpenApi();
-builder.Services.AddControllers()
-	.AddApplicationPart(typeof(IModule).Assembly);
 builder.Services.AddNorthwindCoreModules(builder.Configuration);
 
 var app = builder.Build();
@@ -44,6 +41,6 @@ if (app.Environment.IsDevelopment())
 	app.MapOpenApi();
 }
 
-app.MapControllers();
+app.MapNorthwindCoreModuleEndpoints();
 
 app.Run();

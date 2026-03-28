@@ -22,6 +22,16 @@ public static class NorthwindCoreComposition
         return services;
     }
 
+    public static IEndpointRouteBuilder MapNorthwindCoreModuleEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        foreach (var module in Modules.Value)
+        {
+            endpoints = module.MapEndpoints(endpoints);
+        }
+
+        return endpoints;
+    }
+
     private static IServiceCollection AddModuleInfrastructure(
         this IServiceCollection services,
         Type moduleType,
