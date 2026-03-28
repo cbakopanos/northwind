@@ -10,7 +10,7 @@
 ## Database setup
 
 - [Bootstrap script](database/rundb.sh): starts a local PostgreSQL container and loads schema + seed.
-- [Schema](database/init.sql): tables, constraints, views, and functions.
+- [Schema](database/init.sql): schema-partitioned bounded contexts (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`) with tables, constraints, views, and functions.
 - [Seed data](database/seed.sql): dataset load script.
 
 ## Quick start

@@ -14,6 +14,7 @@ Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
 
 - Engine: PostgreSQL (container image `postgres:17` via [database/rundb.sh](../database/rundb.sh))
 - Extension: `pgcrypto`
+- Bounded-context schemas: 7 (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`)
 - Tables: 13
 - Views: 16
 - SQL functions (procedure equivalents): 7
@@ -23,85 +24,96 @@ Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
 
 ## 2) Tables
 
+## 2.0 Schema layout
+
+- `sales_ordering`: `Orders`, `Order Details`
+- `catalog`: `Products`, `Categories`
+- `crm`: `Customers`, `CustomerDemographics`, `CustomerCustomerDemo`
+- `fulfillment`: `Shippers`
+- `sales_org`: `Employees`, `Region`, `Territories`, `EmployeeTerritories`
+- `supplier`: `Suppliers`
+
 ## 2.1 Core transactional tables
 
-1. `Orders`
+1. `sales_ordering."Orders"`
    - PK: `OrderID`
    - FKs:
-     - `CustomerID -> Customers.CustomerID`
-     - `EmployeeID -> Employees.EmployeeID`
-     - `ShipVia -> Shippers.ShipperID`
+       - `CustomerID -> crm."Customers"."CustomerID"`
+       - `EmployeeID -> sales_org."Employees"."EmployeeID"`
+       - `ShipVia -> fulfillment."Shippers"."ShipperID"`
    - Purpose: order header, lifecycle dates, shipping destination and freight.
 
-2. `Order Details`
+2. `sales_ordering."Order Details"`
    - Composite PK: (`OrderID`, `ProductID`)
    - FKs:
-     - `OrderID -> Orders.OrderID`
-     - `ProductID -> Products.ProductID`
+       - `OrderID -> sales_ordering."Orders"."OrderID"`
+       - `ProductID -> catalog."Products"."ProductID"`
    - Purpose: line items with unit price snapshot, quantity, and discount.
 
-3. `Products`
+3. `catalog."Products"`
    - PK: `ProductID`
    - FKs:
-     - `SupplierID -> Suppliers.SupplierID`
-     - `CategoryID -> Categories.CategoryID`
+       - `SupplierID -> supplier."Suppliers"."SupplierID"`
+       - `CategoryID -> catalog."Categories"."CategoryID"`
    - Purpose: product catalog and inventory/sellability metadata.
 
 ## 2.2 Master/reference tables
 
-4. `Customers`
+4. `crm."Customers"`
    - PK: `CustomerID`
    - Purpose: customer profile and contact/address information.
 
-5. `Employees`
+5. `sales_org."Employees"`
    - PK: `EmployeeID`
-   - Self-FK: `ReportsTo -> Employees.EmployeeID`
+   - Self-FK: `ReportsTo -> sales_org."Employees"."EmployeeID"`
    - Purpose: employee profile and manager hierarchy.
 
-6. `Shippers`
+6. `fulfillment."Shippers"`
    - PK: `ShipperID`
    - Purpose: shipping providers.
 
-7. `Suppliers`
+7. `supplier."Suppliers"`
    - PK: `SupplierID`
    - Purpose: supplier profile and contacts.
 
-8. `Categories`
+8. `catalog."Categories"`
    - PK: `CategoryID`
    - Purpose: product category metadata.
 
 ## 2.3 Relationship/association tables
 
-9. `CustomerDemographics`
+9. `crm."CustomerDemographics"`
    - PK: `CustomerTypeID`
    - Purpose: demographic type dictionary.
 
-10. `CustomerCustomerDemo`
+10. `crm."CustomerCustomerDemo"`
    - Composite PK: (`CustomerID`, `CustomerTypeID`)
    - FKs:
-     - `CustomerID -> Customers.CustomerID`
-     - `CustomerTypeID -> CustomerDemographics.CustomerTypeID`
+   - `CustomerID -> crm."Customers"."CustomerID"`
+   - `CustomerTypeID -> crm."CustomerDemographics"."CustomerTypeID"`
    - Purpose: many-to-many link between customers and demographic tags.
 
-11. `Region`
+11. `sales_org."Region"`
    - PK: `RegionID`
    - Purpose: region catalog.
 
-12. `Territories`
+12. `sales_org."Territories"`
    - PK: `TerritoryID`
-   - FK: `RegionID -> Region.RegionID`
+   - FK: `RegionID -> sales_org."Region"."RegionID"`
    - Purpose: territory catalog per region.
 
-13. `EmployeeTerritories`
+13. `sales_org."EmployeeTerritories"`
    - Composite PK: (`EmployeeID`, `TerritoryID`)
    - FKs:
-     - `EmployeeID -> Employees.EmployeeID`
-     - `TerritoryID -> Territories.TerritoryID`
+   - `EmployeeID -> sales_org."Employees"."EmployeeID"`
+   - `TerritoryID -> sales_org."Territories"."TerritoryID"`
    - Purpose: many-to-many assignment between employees and territories.
 
 ---
 
 ## 3) Views
+
+All views are created in schema `reporting` (with `search_path` set to include transactional schemas).
 
 1. `Customer and Suppliers by City`
 2. `Alphabetical list of products`
@@ -125,6 +137,8 @@ These are read-model style SQL objects, mostly oriented to reporting and denorma
 ---
 
 ## 4) Functions (stored procedure equivalents)
+
+All functions are created in schema `reporting` (with `search_path` set to include transactional schemas).
 
 1. `CustOrdersDetail(p_OrderID integer)`
 2. `CustOrdersOrders(p_CustomerID char)`
@@ -198,13 +212,13 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 ### Foreign keys
 
 - Key referential chains:
-  - `Orders` -> `Customers`, `Employees`, `Shippers`
-  - `Order Details` -> `Orders`, `Products`
-  - `Products` -> `Categories`, `Suppliers`
-  - `Territories` -> `Region`
-  - `EmployeeTerritories` -> `Employees`, `Territories`
-  - `CustomerCustomerDemo` -> `Customers`, `CustomerDemographics`
-  - `Employees.ReportsTo` -> `Employees`
+   - `sales_ordering."Orders"` -> `crm."Customers"`, `sales_org."Employees"`, `fulfillment."Shippers"`
+   - `sales_ordering."Order Details"` -> `sales_ordering."Orders"`, `catalog."Products"`
+   - `catalog."Products"` -> `catalog."Categories"`, `supplier."Suppliers"`
+   - `sales_org."Territories"` -> `sales_org."Region"`
+   - `sales_org."EmployeeTerritories"` -> `sales_org."Employees"`, `sales_org."Territories"`
+   - `crm."CustomerCustomerDemo"` -> `crm."Customers"`, `crm."CustomerDemographics"`
+   - `sales_org."Employees"."ReportsTo"` -> `sales_org."Employees"`
 
 ### Check constraints
 
@@ -220,6 +234,9 @@ Note: some indexes are intentionally duplicated from original Northwind naming/c
 ## 7) Naming and migration notes
 
 - The schema keeps original Northwind-style quoted identifiers, including spaced names such as `Order Details`.
+- Physical partitioning by bounded context is implemented using schemas in one database.
+- Current safety mode keeps both intra-context and cross-context foreign keys active.
+- `database/seed.sql` relies on `search_path` to load legacy unqualified inserts into the correct schemas.
 - Functions are implemented via `CREATE OR REPLACE FUNCTION` (instead of SQL Server procedures).
 - [database/rundb.sh](../database/rundb.sh) includes seed preprocessing to normalize legacy script fragments before execution.
 

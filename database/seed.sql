@@ -1,4 +1,5 @@
 BEGIN;
+SET search_path = sales_ordering, catalog, crm, sales_org, fulfillment, supplier, public;
 -- allow bulk inserts without firing RI triggers (restore after)
 SET session_replication_role = replica;
 

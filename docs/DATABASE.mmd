@@ -1,52 +1,52 @@
 erDiagram
     direction LR
 
-    EMPLOYEES o|--o{ EMPLOYEES : manages
-    CUSTOMERS o|--o{ ORDERS : places
-    EMPLOYEES o|--o{ ORDERS : handles
-    SHIPPERS o|--o{ ORDERS : ships_via
+    SALES_ORG_EMPLOYEES o|--o{ SALES_ORG_EMPLOYEES : manages
+    CRM_CUSTOMERS o|--o{ SALES_ORDERING_ORDERS : places
+    SALES_ORG_EMPLOYEES o|--o{ SALES_ORDERING_ORDERS : handles
+    FULFILLMENT_SHIPPERS o|--o{ SALES_ORDERING_ORDERS : ships_via
 
-    CATEGORIES o|--o{ PRODUCTS : groups
-    SUPPLIERS o|--o{ PRODUCTS : supplies
+    CATALOG_CATEGORIES o|--o{ CATALOG_PRODUCTS : groups
+    SUPPLIER_SUPPLIERS o|--o{ CATALOG_PRODUCTS : supplies
 
-    ORDERS ||--o{ ORDER_DETAILS : contains
-    PRODUCTS ||--o{ ORDER_DETAILS : appears_in
+    SALES_ORDERING_ORDERS ||--o{ SALES_ORDERING_ORDER_DETAILS : contains
+    CATALOG_PRODUCTS ||--o{ SALES_ORDERING_ORDER_DETAILS : appears_in
 
-    CUSTOMERS ||--o{ CUSTOMER_CUSTOMER_DEMO : has
-    CUSTOMER_DEMOGRAPHICS ||--o{ CUSTOMER_CUSTOMER_DEMO : classifies
+    CRM_CUSTOMERS ||--o{ CRM_CUSTOMER_CUSTOMER_DEMO : has
+    CRM_CUSTOMER_DEMOGRAPHICS ||--o{ CRM_CUSTOMER_CUSTOMER_DEMO : classifies
 
-    REGION ||--o{ TERRITORIES : contains
-    EMPLOYEES ||--o{ EMPLOYEE_TERRITORIES : assigned_to
-    TERRITORIES ||--o{ EMPLOYEE_TERRITORIES : includes
+    SALES_ORG_REGION ||--o{ SALES_ORG_TERRITORIES : contains
+    SALES_ORG_EMPLOYEES ||--o{ SALES_ORG_EMPLOYEE_TERRITORIES : assigned_to
+    SALES_ORG_TERRITORIES ||--o{ SALES_ORG_EMPLOYEE_TERRITORIES : includes
 
-    EMPLOYEES {
+    SALES_ORG_EMPLOYEES {
         int EmployeeID PK
         string LastName
         string FirstName
         int ReportsTo FK
     }
 
-    CATEGORIES {
+    CATALOG_CATEGORIES {
         int CategoryID PK
         string CategoryName
     }
 
-    CUSTOMERS {
+    CRM_CUSTOMERS {
         string CustomerID PK
         string CompanyName
     }
 
-    SHIPPERS {
+    FULFILLMENT_SHIPPERS {
         int ShipperID PK
         string CompanyName
     }
 
-    SUPPLIERS {
+    SUPPLIER_SUPPLIERS {
         int SupplierID PK
         string CompanyName
     }
 
-    PRODUCTS {
+    CATALOG_PRODUCTS {
         int ProductID PK
         string ProductName
         int SupplierID FK
@@ -55,7 +55,7 @@ erDiagram
         bool Discontinued
     }
 
-    ORDERS {
+    SALES_ORDERING_ORDERS {
         int OrderID PK
         string CustomerID FK
         int EmployeeID FK
@@ -64,7 +64,7 @@ erDiagram
         datetime ShippedDate
     }
 
-    ORDER_DETAILS {
+    SALES_ORDERING_ORDER_DETAILS {
         int OrderID PK, FK
         int ProductID PK, FK
         numeric UnitPrice
@@ -72,27 +72,27 @@ erDiagram
         float Discount
     }
 
-    CUSTOMER_DEMOGRAPHICS {
+    CRM_CUSTOMER_DEMOGRAPHICS {
         string CustomerTypeID PK
     }
 
-    CUSTOMER_CUSTOMER_DEMO {
+    CRM_CUSTOMER_CUSTOMER_DEMO {
         string CustomerID PK, FK
         string CustomerTypeID PK, FK
     }
 
-    REGION {
+    SALES_ORG_REGION {
         int RegionID PK
         string RegionDescription
     }
 
-    TERRITORIES {
+    SALES_ORG_TERRITORIES {
         string TerritoryID PK
         int RegionID FK
         string TerritoryDescription
     }
 
-    EMPLOYEE_TERRITORIES {
+    SALES_ORG_EMPLOYEE_TERRITORIES {
         int EmployeeID PK, FK
         string TerritoryID PK, FK
     }

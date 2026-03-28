@@ -16,6 +16,7 @@ The goal is to move from table-centric design to domain-centric design by:
 - Source schema: [database/init.sql](../database/init.sql)
 - Existing data loading: [database/seed.sql](../database/seed.sql)
 - Bootstrap script: [database/rundb.sh](../database/rundb.sh)
+- Physical bounded-context partitioning is implemented in a single database using schemas (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`).
 - Existing reporting SQL views/functions are treated as read models and not as transactional domain logic.
 - Cross-context consistency is eventual unless explicitly stated.
 
@@ -188,6 +189,16 @@ The goal is to move from table-centric design to domain-centric design by:
 
 - This context is **read-only** from a domain perspective.
 
+## 2.8 Physical schema mapping (implemented)
+
+- Sales Ordering -> `sales_ordering`
+- Product Catalog -> `catalog`
+- Customer Management -> `crm`
+- Fulfillment & Shipping -> `fulfillment`
+- Sales Organization -> `sales_org`
+- Supplier Management -> `supplier`
+- Reporting & Analytics -> `reporting`
+
 ---
 
 ## 3) Aggregates
@@ -342,6 +353,7 @@ Visual diagram: [DOMAIN.mmd](DOMAIN.mmd)
 - Outbox + integration events (medium term).
 - Eventual consistency between contexts.
 - Anti-Corruption Layer (ACL) for legacy SQL naming/structures (for example, `Order Details`).
+- **Current database safety mode:** cross-context foreign keys are intentionally retained while middleware is not yet implemented.
 
 ## 4.3 Context map pattern labels
 
@@ -593,22 +605,19 @@ This section defines command/event/repository boundaries for each context.
 
 ## 6) Implementation notes and migration path
 
-### Step 1: Introduce contracts without schema changes
+### Current status
 
-- Keep existing tables.
-- Implement aggregates in application layer.
-- Use repository adapters to current table names.
+- Physical partitioning by bounded context is implemented with schemas in [../database/init.sql](../database/init.sql).
+- [../database/seed.sql](../database/seed.sql) is aligned via `search_path` so legacy insert statements load correctly into the new schemas.
+- Cross-context and intra-context foreign keys are both active in the current state for strong DB-level referential integrity.
 
-### Step 2: Add event publication
+### Next steps
 
-- Publish domain events from successful command handling.
-- Build reporting projections from events.
-
-### Step 3: Optional structural improvements
-
-- Introduce explicit `Shipment` persistence.
-- Introduce outbox for reliable cross-context event delivery.
-- Split physical schemas/databases per bounded context when organizationally justified.
+1. Implement application-layer aggregates/repositories against schema-qualified objects.
+2. Publish domain events from command handlers.
+3. Introduce outbox/integration delivery.
+4. Optionally relax selected cross-context FKs only when integration reliability controls are in place.
+5. Optionally split to multiple databases when operationally justified.
 
 ---
 
@@ -630,13 +639,13 @@ This pass confirms consistency between schema, scripts, and domain docs.
 
 ### 8.1 Schema to context alignment
 
-- `Orders`, `Order Details` -> Sales Ordering
-- `Products`, `Categories` -> Product Catalog
-- `Customers`, `CustomerDemographics`, `CustomerCustomerDemo` -> Customer Management
-- `Shippers` (+ shipping fields in `Orders`) -> Fulfillment & Shipping
-- `Employees`, `Region`, `Territories`, `EmployeeTerritories` -> Sales Organization
-- `Suppliers` -> Supplier Management
-- Views/functions -> Reporting & Analytics read model
+- `sales_ordering."Orders"`, `sales_ordering."Order Details"` -> Sales Ordering
+- `catalog."Products"`, `catalog."Categories"` -> Product Catalog
+- `crm."Customers"`, `crm."CustomerDemographics"`, `crm."CustomerCustomerDemo"` -> Customer Management
+- `fulfillment."Shippers"` (+ shipping fields in `sales_ordering."Orders"`) -> Fulfillment & Shipping
+- `sales_org."Employees"`, `sales_org."Region"`, `sales_org."Territories"`, `sales_org."EmployeeTerritories"` -> Sales Organization
+- `supplier."Suppliers"` -> Supplier Management
+- `reporting` views/functions -> Reporting & Analytics read model
 
 ### 8.2 Script alignment
 
@@ -651,9 +660,15 @@ This pass confirms consistency between schema, scripts, and domain docs.
 
 ### 8.4 Known intentional gaps
 
-- Physical database split by bounded context is not implemented yet.
+- Multi-database split by bounded context is not implemented yet (single DB + multi-schema is implemented).
 - Outbox/integration transport is planned but not implemented.
 - `Shipment` persistence is still embedded in order shipping fields unless promoted later.
+
+### 8.6 Referential integrity mode (current)
+
+- Intra-context foreign keys are enforced.
+- Cross-context foreign keys are also enforced for now (transitional safety).
+- Planned long-term option: selectively replace cross-context FKs with integration/event consistency once middleware reliability controls are in place.
 
 ### 8.5 Schema-to-domain deltas (intentional)
 

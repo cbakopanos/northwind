@@ -1,11 +1,12 @@
 flowchart LR
-    SO["Sales Ordering\n(Core Domain)"]
-    PC["Product Catalog"]
-    CRM["Customer Management (CRM)"]
-    FUL["Fulfillment & Shipping"]
-    ORG["Sales Organization"]
-    SUP["Supplier Management"]
-    REP["Reporting & Analytics\n(Read Model)"]
+    SO["Sales Ordering\n(Core Domain)\nSchema: sales_ordering"]
+    PC["Product Catalog\nSchema: catalog"]
+    CRM["Customer Management (CRM)\nSchema: crm"]
+    FUL["Fulfillment & Shipping\nSchema: fulfillment"]
+    ORG["Sales Organization\nSchema: sales_org"]
+    SUP["Supplier Management\nSchema: supplier"]
+    REP["Reporting & Analytics\n(Read Model)\nSchema: reporting"]
+    NOTE["Current DB mode:\nSchema partitioning is implemented.\nCross-context FKs are still enabled (intentional transitional safety)."]
 
     PC -->|"ProductId, category rules"| SO
     CRM -->|"CustomerId"| SO
@@ -25,11 +26,14 @@ flowchart LR
     SO -.->|"ACL"| CRM
     SO -.->|"ACL"| ORG
     SO -.->|"ACL"| FUL
+    NOTE -.-> SO
 
     classDef core fill:#fde68a,stroke:#92400e,stroke-width:2px,color:#111827;
     classDef upstream fill:#dbeafe,stroke:#1d4ed8,stroke-width:1.5px,color:#111827;
     classDef downstream fill:#dcfce7,stroke:#166534,stroke-width:1.5px,color:#111827;
+    classDef note fill:#f3f4f6,stroke:#4b5563,stroke-width:1px,color:#111827;
 
     class SO core;
     class PC,CRM,FUL,ORG,SUP upstream;
     class REP downstream;
+    class NOTE note;
