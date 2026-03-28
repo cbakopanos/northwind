@@ -16,7 +16,7 @@ public static class NorthwindCoreComposition
         foreach (var module in Modules.Value)
         {
             services = services.AddModuleInfrastructure(module.GetType(), configuration);
-            services = module.AddModule(services, configuration);
+            services = module.AddModule(services);
         }
 
         return services;

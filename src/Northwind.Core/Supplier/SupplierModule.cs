@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Northwind.Shared.Abstractions;
 using Northwind.Supplier.Application;
@@ -10,7 +9,7 @@ namespace Northwind.Supplier;
 [Infrastructure(typeof(SupplierDbContext))]
 public sealed class SupplierModule : IModule
 {
-    public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
+    public IServiceCollection AddModule(IServiceCollection services)
     {
         services.AddScoped<IGetAllSuppliers, GetAllSuppliersQuery>();
 
