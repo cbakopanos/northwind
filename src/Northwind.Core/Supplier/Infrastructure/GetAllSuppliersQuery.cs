@@ -1,13 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Northwind.Supplier.Application;
 
 namespace Northwind.Supplier.Infrastructure;
 
-public sealed class GetAllSuppliersQuery(SupplierDbContext dbContext) : IGetAllSuppliers
+public sealed class GetAllSuppliersQuery(
+    SupplierDbContext dbContext,
+    ILogger<GetAllSuppliersQuery> logger) : IGetAllSuppliers
 {
     public async Task<IReadOnlyList<SupplierListItem>> Execute(CancellationToken cancellationToken = default)
     {
-        return await dbContext.Suppliers
+        logger.LogInformation("Fetching suppliers from database");
+
+        var suppliers = await dbContext.Suppliers
             .AsNoTracking()
             .OrderBy(x => x.CompanyName)
             .Select(x => new SupplierListItem(
@@ -19,5 +24,9 @@ public sealed class GetAllSuppliersQuery(SupplierDbContext dbContext) : IGetAllS
                 x.Country,
                 x.Phone))
             .ToListAsync(cancellationToken);
+
+        logger.LogInformation("Fetched {SupplierCount} suppliers from database", suppliers.Count);
+
+        return suppliers;
     }
 }

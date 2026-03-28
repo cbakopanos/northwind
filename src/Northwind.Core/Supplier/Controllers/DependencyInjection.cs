@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Northwind.Supplier.Application;
 using Northwind.Shared.Extensions;
 
@@ -16,15 +17,20 @@ public static class DependencyInjection
 
     public static IEndpointRouteBuilder MapSupplierEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/supplier");
+        endpoints.MapModuleHealthEndpoint("/api/supplier", "Supplier");
 
-        group.MapGet("/health", () => new { context = "Supplier", status = "ok" });
+        var group = endpoints.MapGroup("/api/supplier");
 
         group.MapGet(
             "/suppliers",
-            async (IGetAllSuppliers query, CancellationToken cancellationToken) =>
+            async (IGetAllSuppliers query, ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
             {
+                var logger = loggerFactory.CreateLogger("Northwind.Supplier.Controllers");
+                logger.LogInformation("Handling {Endpoint}", "GET /api/supplier/suppliers");
+
                 var suppliers = await query.Execute(cancellationToken);
+
+                logger.LogInformation("Returning {SupplierCount} suppliers", suppliers.Count);
                 return Results.Ok(suppliers);
             })
             .WithName("GetAllSuppliers")

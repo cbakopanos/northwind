@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Northwind.Shared.Extensions;
 
@@ -27,7 +28,12 @@ public static class ModuleConventions
         string context)
     {
         var group = endpoints.MapGroup(routePrefix);
-        group.MapGet("/health", () => new { context, status = "ok" });
+        group.MapGet("/health", (ILoggerFactory loggerFactory) =>
+        {
+            var logger = loggerFactory.CreateLogger("Northwind.ModuleHealth");
+            logger.LogInformation("Health endpoint requested for module {ModuleContext}", context);
+            return new { context, status = "ok" };
+        });
         return endpoints;
     }
 }
