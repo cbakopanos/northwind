@@ -4,7 +4,7 @@ using Northwind.Shared.Abstractions;
 
 namespace Northwind.Fulfillment;
 
-[Module(order: 40)]
+[Module]
 public sealed class FulfillmentModule : IModule
 {
     public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)

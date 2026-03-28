@@ -4,7 +4,7 @@ using Northwind.Shared.Abstractions;
 
 namespace Northwind.SalesOrdering;
 
-[Module(order: 10)]
+[Module]
 public sealed class SalesOrderingModule : IModule
 {
     public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)

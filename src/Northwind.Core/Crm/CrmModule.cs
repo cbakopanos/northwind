@@ -4,7 +4,7 @@ using Northwind.Shared.Abstractions;
 
 namespace Northwind.Crm;
 
-[Module(order: 30)]
+[Module]
 public sealed class CrmModule : IModule
 {
     public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
