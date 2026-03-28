@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Northwind.Fulfillment.Application;
-using Northwind.Fulfillment.Infrastructure;
 using Northwind.Shared.Abstractions;
 
 namespace Northwind.Fulfillment;
@@ -11,10 +9,6 @@ public sealed class FulfillmentModule : IModule
 {
     public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
     {
-        services
-            .AddFulfillmentApplication()
-            .AddFulfillmentInfrastructure(configuration);
-
         return services;
     }
 }
