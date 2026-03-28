@@ -85,9 +85,33 @@ def add_missing_terminator(match: re.Match[str]) -> str:
 
 content = boundary_pattern.sub(add_missing_terminator, content)
 
+# Rewrite legacy Northwind quoted table names to physical snake_case table names.
+insert_table_name_map = {
+  '"Employees"': 'employees',
+  '"Categories"': 'categories',
+  '"Customers"': 'customers',
+  '"Shippers"': 'shippers',
+  '"Suppliers"': 'suppliers',
+  '"Orders"': 'orders',
+  '"Products"': 'products',
+  '"Order Details"': 'order_lines',
+  '"CustomerDemographics"': 'customer_demographic_types',
+  '"CustomerCustomerDemo"': 'customer_demographic_assignments',
+  '"Region"': 'regions',
+  '"Territories"': 'territories',
+  '"EmployeeTerritories"': 'employee_territory_assignments',
+}
+
+for legacy_name, physical_name in insert_table_name_map.items():
+  content = re.sub(
+    rf'(?im)\bINSERT\s+INTO\s+{re.escape(legacy_name)}',
+    f'INSERT INTO {physical_name}',
+    content,
+  )
+
 # PostgreSQL boolean normalization for Products.Discontinued.
 content = re.sub(
-  r'^(INSERT INTO "Products"\(.*"Discontinued"\) VALUES\(.*),(0|1)\);\s*$',
+  r'^(INSERT INTO (?:"Products"|products)\(.*"Discontinued"\) VALUES\(.*),(0|1)\);\s*$',
   lambda m: f"{m.group(1)},{'true' if m.group(2) == '1' else 'false'});",
   content,
   flags=re.MULTILINE,

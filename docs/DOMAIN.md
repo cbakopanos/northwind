@@ -37,11 +37,11 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 | FK Constraint | Source (schema.table.column) | Target (schema.table.column) | Source Context | Target Context | Status |
 |---|---|---|---|---|---|
-| `FK_Orders_Customers` | `sales_ordering."Orders"."CustomerID"` | `crm."Customers"."CustomerID"` | Sales Ordering | Customer Management (CRM) | Planned for phased decoupling |
-| `FK_Orders_Employees` | `sales_ordering."Orders"."EmployeeID"` | `sales_org."Employees"."EmployeeID"` | Sales Ordering | Sales Organization | Planned for phased decoupling |
-| `FK_Orders_Shippers` | `sales_ordering."Orders"."ShipVia"` | `fulfillment."Shippers"."ShipperID"` | Sales Ordering | Fulfillment & Shipping | Planned for phased decoupling |
-| `FK_Order_Details_Products` | `sales_ordering."Order Details"."ProductID"` | `catalog."Products"."ProductID"` | Sales Ordering | Product Catalog | Planned for phased decoupling |
-| `FK_Products_Suppliers` | `catalog."Products"."SupplierID"` | `supplier."Suppliers"."SupplierID"` | Product Catalog | Supplier Management | Planned for phased decoupling |
+| `FK_Orders_Customers` | `sales_ordering.orders.CustomerID` | `crm.customers.CustomerID` | Sales Ordering | Customer Management (CRM) | Planned for phased decoupling |
+| `FK_Orders_Employees` | `sales_ordering.orders.EmployeeID` | `sales_org.employees.EmployeeID` | Sales Ordering | Sales Organization | Planned for phased decoupling |
+| `FK_Orders_Shippers` | `sales_ordering.orders.ShipVia` | `fulfillment.shippers.ShipperID` | Sales Ordering | Fulfillment & Shipping | Planned for phased decoupling |
+| `FK_Order_Details_Products` | `sales_ordering.order_lines.ProductID` | `catalog.products.ProductID` | Sales Ordering | Product Catalog | Planned for phased decoupling |
+| `FK_Products_Suppliers` | `catalog.products.SupplierID` | `supplier.suppliers.SupplierID` | Product Catalog | Supplier Management | Planned for phased decoupling |
 
 ## 2.1 Sales Ordering (Core Domain)
 
@@ -51,8 +51,8 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary tables**
 
-- `Orders`
-- `Order Details`
+- `orders`
+- `order_lines`
 
 **Key responsibilities**
 
@@ -75,8 +75,8 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary tables**
 
-- `Products`
-- `Categories`
+- `products`
+- `categories`
 
 **Key responsibilities**
 
@@ -98,9 +98,9 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary tables**
 
-- `Customers`
-- `CustomerDemographics`
-- `CustomerCustomerDemo`
+- `customers`
+- `customer_demographic_types`
+- `customer_demographic_assignments`
 
 **Key responsibilities**
 
@@ -121,8 +121,8 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary tables**
 
-- `Shippers`
-- Shipping fields currently stored on `Orders` (`ShipVia`, `ShippedDate`, destination fields)
+- `shippers`
+- Shipping fields currently stored on `orders` (`ShipVia`, `ShippedDate`, destination fields)
 
 **Key responsibilities**
 
@@ -143,10 +143,10 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary tables**
 
-- `Employees`
-- `Region`
-- `Territories`
-- `EmployeeTerritories`
+- `employees`
+- `regions`
+- `territories`
+- `employee_territory_assignments`
 
 **Key responsibilities**
 
@@ -168,8 +168,8 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 **Primary tables**
 
-- `Suppliers`
-- Product supplier reference via `Products.SupplierID`
+- `suppliers`
+- Product supplier reference via `products.SupplierID`
 
 **Key responsibilities**
 
@@ -364,7 +364,7 @@ Visual diagram: [DOMAIN.mmd](DOMAIN.mmd)
 - In-process domain events (short term).
 - Outbox + integration events (medium term).
 - Eventual consistency between contexts.
-- Anti-Corruption Layer (ACL) for legacy SQL naming/structures (for example, `Order Details`).
+- Anti-Corruption Layer (ACL) for legacy SQL naming/structures (for example, legacy seed/table naming translated to physical `order_lines`).
 - **Current database safety mode:** cross-context foreign keys are intentionally retained while middleware is not yet implemented.
 
 ## 4.3 Context map pattern labels
@@ -499,7 +499,7 @@ This section defines command/event/repository boundaries for each context.
 
 - `CustomerRepository`
 - `CustomerDemographicRepository`
-- Assignment links (`CustomerCustomerDemo`) are controlled by `Customer` aggregate behavior.
+- Assignment links (`customer_demographic_assignments`) are controlled by `Customer` aggregate behavior.
 
 ---
 
@@ -651,12 +651,12 @@ This pass confirms consistency between schema, scripts, and domain docs.
 
 ### 8.1 Schema to context alignment
 
-- `sales_ordering."Orders"`, `sales_ordering."Order Details"` -> Sales Ordering
-- `catalog."Products"`, `catalog."Categories"` -> Product Catalog
-- `crm."Customers"`, `crm."CustomerDemographics"`, `crm."CustomerCustomerDemo"` -> Customer Management
-- `fulfillment."Shippers"` (+ shipping fields in `sales_ordering."Orders"`) -> Fulfillment & Shipping
-- `sales_org."Employees"`, `sales_org."Region"`, `sales_org."Territories"`, `sales_org."EmployeeTerritories"` -> Sales Organization
-- `supplier."Suppliers"` -> Supplier Management
+- `sales_ordering.orders`, `sales_ordering.order_lines` -> Sales Ordering
+- `catalog.products`, `catalog.categories` -> Product Catalog
+- `crm.customers`, `crm.customer_demographic_types`, `crm.customer_demographic_assignments` -> Customer Management
+- `fulfillment.shippers` (+ shipping fields in `sales_ordering.orders`) -> Fulfillment & Shipping
+- `sales_org.employees`, `sales_org.regions`, `sales_org.territories`, `sales_org.employee_territory_assignments` -> Sales Organization
+- `supplier.suppliers` -> Supplier Management
 - `reporting` views/functions -> Reporting & Analytics read model
 
 ### 8.2 Script alignment
@@ -684,7 +684,7 @@ This pass confirms consistency between schema, scripts, and domain docs.
 
 ### 8.5 Schema-to-domain deltas (intentional)
 
-- In [../database/init.sql](../database/init.sql), `Orders.CustomerID`, `Orders.EmployeeID`, and `Orders.ShipVia` are nullable.
+- In [../database/init.sql](../database/init.sql), `orders.CustomerID`, `orders.EmployeeID`, and `orders.ShipVia` are nullable.
   - Domain command contracts may enforce stricter rules for new writes (for example, requiring `customerId`/`employeeId` before `PlaceOrder`).
   - Nullable values remain relevant for historical imports and legacy compatibility.
-- Database check constraints in `Products` and `Order Details` are reflected in aggregate invariants, while lifecycle rules (for example, `Draft -> Placed -> Shipped`) remain domain-level behavior.
+- Database check constraints in `products` and `order_lines` are reflected in aggregate invariants, while lifecycle rules (for example, `Draft -> Placed -> Shipped`) remain domain-level behavior.
