@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Northwind.Shared.Abstractions;
 using Northwind.Supplier.Application;
@@ -11,15 +10,9 @@ namespace Northwind.Supplier;
 
 [Module]
 [Infrastructure(typeof(SupplierDbContext))]
+[Repository(typeof(ISuppliersRepository), typeof(SuppliersRepository))]
 public sealed class SupplierModule : IModule
 {
-    public IServiceCollection AddModule(IServiceCollection services)
-    {
-        services.AddScoped<ISuppliersRepository, SuppliersRepository>();
-
-        return services;
-    }
-
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/api/supplier/health", (ILogger<SupplierModule> logger) =>

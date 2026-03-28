@@ -16,7 +16,7 @@ public static class NorthwindCoreComposition
         foreach (var module in Modules.Value)
         {
             services = services.AddModuleInfrastructure(module.GetType(), configuration);
-            services = module.AddModule(services);
+            services = services.AddModuleRepositories(module.GetType());
         }
 
         return services;
@@ -65,6 +65,38 @@ public static class NorthwindCoreComposition
                 ?? DefaultNorthwindConnectionString;
 
             services = services.AddDbContextByType(infrastructureAttribute.DbContextType, connectionString);
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection AddModuleRepositories(this IServiceCollection services, Type moduleType)
+    {
+        var repositoryAttributes = moduleType
+            .GetCustomAttributes<RepositoryAttribute>(inherit: false)
+            .ToArray();
+
+        if (repositoryAttributes.Length > 0 && !typeof(IModule).IsAssignableFrom(moduleType))
+        {
+            throw new InvalidOperationException(
+                $"RepositoryAttribute can only decorate IModule implementations. Invalid type: '{moduleType.FullName}'.");
+        }
+
+        if (repositoryAttributes.Length > 1)
+        {
+            throw new InvalidOperationException(
+                $"RepositoryAttribute can only be applied once per module. Invalid module: '{moduleType.FullName}'.");
+        }
+
+        foreach (var repositoryAttribute in repositoryAttributes)
+        {
+            if (!repositoryAttribute.IsValidRepositoryRegistration)
+            {
+                throw new InvalidOperationException(
+                    $"RepositoryAttribute on '{moduleType.FullName}' has invalid registration '{repositoryAttribute.ServiceType.FullName}' -> '{repositoryAttribute.ImplementationType.FullName}'.");
+            }
+
+            services.AddScoped(repositoryAttribute.ServiceType, repositoryAttribute.ImplementationType);
         }
 
         return services;
