@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Northwind.Shared.Extensions;
 
 namespace Northwind.Crm.Infrastructure;
 
@@ -7,7 +8,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCrmInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // TODO: Register Crm infrastructure services.
-        return services;
+        return services.AddInfrastructureLayer();
     }
 }

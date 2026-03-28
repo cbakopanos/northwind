@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Northwind.Shared.Extensions;
 
 namespace Northwind.Reporting.Application;
 
@@ -6,7 +7,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddReportingApplication(this IServiceCollection services)
     {
-        // TODO: Register Reporting application services.
-        return services;
+        return services.AddApplicationLayer();
     }
 }

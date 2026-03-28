@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Northwind.Shared.Extensions;
 
 namespace Northwind.Crm.Application;
 
@@ -6,7 +7,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCrmApplication(this IServiceCollection services)
     {
-        // TODO: Register Crm application services.
-        return services;
+        return services.AddApplicationLayer();
     }
 }
