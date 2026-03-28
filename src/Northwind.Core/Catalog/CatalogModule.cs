@@ -4,12 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Northwind.Catalog.Application;
 using Northwind.Catalog.Controllers;
 using Northwind.Catalog.Infrastructure;
+using Northwind.Shared.Abstractions;
 
 namespace Northwind.Catalog;
 
-public static class CatalogModule
+[Module(order: 20)]
+public sealed class CatalogModule : IModule
 {
-    public static IServiceCollection AddCatalogModule(this IServiceCollection services, IConfiguration configuration)
+    public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddCatalogApplication()
@@ -19,7 +21,7 @@ public static class CatalogModule
         return services;
     }
 
-    public static WebApplication MapCatalogModule(this WebApplication app)
+    public WebApplication MapEndpoints(WebApplication app)
     {
         app.MapCatalogEndpoints();
         return app;

@@ -6,6 +6,7 @@
       "type": "dotnet",
       "request": "launch",
       "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj",
+      "launchBrowser": false,
       "launchSettingsProfile": "https"
     },
     {
@@ -13,6 +14,7 @@
       "type": "dotnet",
       "request": "launch",
       "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj",
+      "launchBrowser": false,
       "launchSettingsProfile": "http"
     }
   ]

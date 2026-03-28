@@ -4,12 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Northwind.Reporting.Application;
 using Northwind.Reporting.Controllers;
 using Northwind.Reporting.Infrastructure;
+using Northwind.Shared.Abstractions;
 
 namespace Northwind.Reporting;
 
-public static class ReportingModule
+[Module(order: 70)]
+public sealed class ReportingModule : IModule
 {
-    public static IServiceCollection AddReportingModule(this IServiceCollection services, IConfiguration configuration)
+    public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddReportingApplication()
@@ -19,7 +21,7 @@ public static class ReportingModule
         return services;
     }
 
-    public static WebApplication MapReportingModule(this WebApplication app)
+    public WebApplication MapEndpoints(WebApplication app)
     {
         app.MapReportingEndpoints();
         return app;

@@ -4,12 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Northwind.Crm.Application;
 using Northwind.Crm.Controllers;
 using Northwind.Crm.Infrastructure;
+using Northwind.Shared.Abstractions;
 
 namespace Northwind.Crm;
 
-public static class CrmModule
+[Module(order: 30)]
+public sealed class CrmModule : IModule
 {
-    public static IServiceCollection AddCrmModule(this IServiceCollection services, IConfiguration configuration)
+    public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddCrmApplication()
@@ -19,7 +21,7 @@ public static class CrmModule
         return services;
     }
 
-    public static WebApplication MapCrmModule(this WebApplication app)
+    public WebApplication MapEndpoints(WebApplication app)
     {
         app.MapCrmEndpoints();
         return app;

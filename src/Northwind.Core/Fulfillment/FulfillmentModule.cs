@@ -4,12 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Northwind.Fulfillment.Application;
 using Northwind.Fulfillment.Controllers;
 using Northwind.Fulfillment.Infrastructure;
+using Northwind.Shared.Abstractions;
 
 namespace Northwind.Fulfillment;
 
-public static class FulfillmentModule
+[Module(order: 40)]
+public sealed class FulfillmentModule : IModule
 {
-    public static IServiceCollection AddFulfillmentModule(this IServiceCollection services, IConfiguration configuration)
+    public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddFulfillmentApplication()
@@ -19,7 +21,7 @@ public static class FulfillmentModule
         return services;
     }
 
-    public static WebApplication MapFulfillmentModule(this WebApplication app)
+    public WebApplication MapEndpoints(WebApplication app)
     {
         app.MapFulfillmentEndpoints();
         return app;

@@ -4,12 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Northwind.SalesOrdering.Application;
 using Northwind.SalesOrdering.Controllers;
 using Northwind.SalesOrdering.Infrastructure;
+using Northwind.Shared.Abstractions;
 
 namespace Northwind.SalesOrdering;
 
-public static class SalesOrderingModule
+[Module(order: 10)]
+public sealed class SalesOrderingModule : IModule
 {
-    public static IServiceCollection AddSalesOrderingModule(this IServiceCollection services, IConfiguration configuration)
+    public IServiceCollection AddModule(IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddSalesOrderingApplication()
@@ -19,7 +21,7 @@ public static class SalesOrderingModule
         return services;
     }
 
-    public static WebApplication MapSalesOrderingModule(this WebApplication app)
+    public WebApplication MapEndpoints(WebApplication app)
     {
         app.MapSalesOrderingEndpoints();
         return app;
