@@ -3,13 +3,6 @@ namespace Northwind.Supplier.Application;
 public sealed record SupplierDetailsDto(
     int SupplierId,
     string CompanyName,
-    string? ContactName,
-    string? ContactTitle,
-    string? Address,
-    string? City,
-    string? Region,
-    string? PostalCode,
-    string? Country,
-    string? Phone,
-    string? Fax,
-    string? HomepageUrl);
+    SupplierContact Contact,
+    Address Address,
+    SupplierCommunication Communication);

@@ -9,21 +9,25 @@ public static class SupplierMappings
         x => new SupplierSummaryDto(
             x.SupplierId,
             x.CompanyName,
-            x.ContactName,
-            x.ContactTitle);
+            new SupplierContact(
+                x.ContactName,
+                x.ContactTitle));
 
     public static readonly Expression<Func<SupplierEntity, SupplierDetailsDto>> ToDetailsDto =
         x => new SupplierDetailsDto(
             x.SupplierId,
             x.CompanyName,
-            x.ContactName,
-            x.ContactTitle,
-            x.Address,
-            x.City,
-            x.Region,
-            x.PostalCode,
-            x.Country,
-            x.Phone,
-            x.Fax,
-            x.HomepageUrl);
+            new SupplierContact(
+                x.ContactName,
+                x.ContactTitle),
+            new Address(
+                x.Address,
+                x.City,
+                x.Region,
+                x.PostalCode,
+                x.Country),
+            new SupplierCommunication(
+                x.Phone,
+                x.Fax,
+                x.HomepageUrl));
 }

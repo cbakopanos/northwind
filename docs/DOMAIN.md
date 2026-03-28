@@ -341,6 +341,83 @@ The following foreign keys currently cross bounded-context boundaries and are in
 
 - None (read model context).
 
+## 3.8 Value Objects by context (explicit catalog)
+
+This section makes value objects explicit per bounded context so they can be modeled consistently in code.
+
+### Sales Ordering
+
+- `OrderId`
+- `OrderLineId` (or composite line identity inside `Order`)
+- `CustomerId`
+- `EmployeeId`
+- `ProductId`
+- `ShipperId`
+- `Money` (unit price, subtotal)
+- `Quantity`
+- `DiscountRate` ($0 \le discount \le 1$)
+- `OrderStatus` (`Draft`, `Placed`, `Shipped`, `Cancelled`)
+- `ShippingAddress` (snapshot)
+- `OrderDates` (`orderedAt`, `requiredAt`, `shippedAt`)
+
+### Product Catalog
+
+- `ProductId`
+- `CategoryId`
+- `SupplierId` (external reference to Supplier Management)
+- `ProductName`
+- `QuantityPerUnit`
+- `Money` (`unitPrice`)
+- `InventoryLevel` (`unitsInStock`, `unitsOnOrder`)
+- `ReorderLevel`
+- `DiscontinuedFlag`
+
+### Customer Management (CRM)
+
+- `CustomerId`
+- `CustomerTypeId`
+- `CompanyName`
+- `ContactName`
+- `ContactTitle`
+- `CustomerAddress`
+- `PhoneNumber`
+- `FaxNumber`
+
+### Fulfillment & Shipping
+
+- `ShipperId`
+- `ShipmentId` (if explicit aggregate is introduced)
+- `OrderId` (external reference to Sales Ordering)
+- `DestinationAddress`
+- `ShipmentStatus`
+- `ShipDate`
+- `DeliveryDate`
+- `TrackingReference`
+
+### Sales Organization
+
+- `EmployeeId`
+- `ManagerEmployeeId`
+- `RegionId`
+- `TerritoryId`
+- `EmployeeName`
+- `JobTitle`
+- `EmploymentDates` (`birthDate`, `hireDate`)
+- `TerritoryAssignment`
+
+### Supplier Management
+
+- `SupplierId`
+- `CompanyName`
+- `SupplierContact` (`ContactName`, `ContactTitle`)
+- `Address` (`AddressLine`, `City`, `Region`, `PostalCode`, `Country`)
+- `SupplierCommunication` (`Phone`, `Fax`, `HomepageUrl`)
+
+### Reporting & Analytics
+
+- No transactional value objects are owned here.
+- Projection/read-model shapes are context-specific query contracts.
+
 ---
 
 ## 4) Context Map
