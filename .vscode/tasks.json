@@ -12,12 +12,22 @@
       "problemMatcher": "$msCompile"
     },
     {
-      "label": "Build Web",
+      "label": "Install Web",
       "type": "shell",
-      "command": "npm ci && npm run build",
+      "command": "npm ci",
       "options": {
         "cwd": "${workspaceFolder}/Northwind.Web"
       },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Web",
+      "type": "shell",
+      "command": "npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/Northwind.Web"
+      },
+      "dependsOn": ["Install Web"],
       "group": "build",
       "problemMatcher": []
     },
