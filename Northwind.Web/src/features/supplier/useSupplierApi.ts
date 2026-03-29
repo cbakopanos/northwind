@@ -7,19 +7,21 @@ import type {
   SupplierSummary,
   SupplierDetails,
   SupplierRequest,
+  PagedResult,
 } from "./types";
 
-const SUPPLIERS_KEY = ["suppliers"];
+const SUPPLIERS_KEY = "suppliers";
 const SUPPLIER_HEALTH_KEY = ["health", "/api/supplier/health"];
 
-export function useSuppliers() {
+export function useSuppliers(page: number = 1, pageSize: number = 10) {
   return useQuery({
-    queryKey: SUPPLIERS_KEY,
-    queryFn: async (): Promise<SupplierSummary[]> => {
-      const res = await fetch("/api/supplier/suppliers");
+    queryKey: [SUPPLIERS_KEY, page, pageSize],
+    queryFn: async (): Promise<PagedResult<SupplierSummary>> => {
+      const res = await fetch(`/api/supplier/suppliers?page=${page}&pageSize=${pageSize}`);
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       return res.json();
     },
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -52,7 +54,7 @@ export function useCreateSupplier() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
+      queryClient.invalidateQueries({ queryKey: [SUPPLIERS_KEY] });
       queryClient.invalidateQueries({ queryKey: SUPPLIER_HEALTH_KEY });
     },
   });
@@ -80,7 +82,7 @@ export function useUpdateSupplier() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
+      queryClient.invalidateQueries({ queryKey: [SUPPLIERS_KEY] });
       queryClient.invalidateQueries({ queryKey: SUPPLIER_HEALTH_KEY });
     },
   });

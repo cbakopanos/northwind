@@ -8,6 +8,14 @@ Accept: application/json
 GET {{baseUrl}}/api/supplier/suppliers
 Accept: application/json
 
+### Supplier - Get All Suppliers (Page 2)
+GET {{baseUrl}}/api/supplier/suppliers?page=2
+Accept: application/json
+
+### Supplier - Get All Suppliers (10 per page)
+GET {{baseUrl}}/api/supplier/suppliers?page=1&pageSize=10
+Accept: application/json
+
 ### Supplier - Get Supplier By Id
 GET {{baseUrl}}/api/supplier/suppliers/1
 Accept: application/json

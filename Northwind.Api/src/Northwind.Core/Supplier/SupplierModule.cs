@@ -24,18 +24,20 @@ public sealed class SupplierModule : IModule
 
         endpoints.MapGet(
             "/api/supplier/suppliers",
-            async (ISuppliersRepository query, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
+            async (int? page, int? pageSize, ISuppliersRepository query, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
             {
-                logger.LogInformation("Handling {Endpoint}", "GET /api/supplier/suppliers");
+                var currentPage = page ?? 1;
+                var currentPageSize = Math.Clamp(pageSize ?? 10, 1, 100);
+                logger.LogInformation("Handling {Endpoint} (page {Page}, pageSize {PageSize})", "GET /api/supplier/suppliers", currentPage, currentPageSize);
 
-                var suppliers = await query.GetAllAsync(cancellationToken);
+                var result = await query.GetAllAsync(currentPage, currentPageSize, cancellationToken);
 
-                logger.LogInformation("Returning {SupplierCount} suppliers", suppliers.Count);
-                return Results.Ok(suppliers);
+                logger.LogInformation("Returning {SupplierCount} of {TotalCount} suppliers", result.Items.Count, result.TotalCount);
+                return Results.Ok(result);
             })
             .WithName("GetAllSuppliers")
             .WithTags("Supplier")
-            .Produces<IReadOnlyList<SupplierSummaryDto>>(StatusCodes.Status200OK);
+            .Produces<PagedResult<SupplierSummaryDto>>(StatusCodes.Status200OK);
 
         endpoints.MapGet(
             "/api/supplier/suppliers/{supplierId:int}",

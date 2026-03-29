@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, PackageOpen } from "lucide-react";
+import { Plus, PackageOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSuppliers, useSupplier, useCreateSupplier, useUpdateSupplier } from "./useSupplierApi";
 import { SupplierTable, SupplierTableSkeleton } from "./SupplierTable";
 import { SupplierForm } from "./SupplierForm";
@@ -10,10 +10,14 @@ type PanelState =
   | { mode: "add" }
   | { mode: "edit"; supplierId: number };
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
 export function SupplierPage() {
   const [panel, setPanel] = useState<PanelState>({ mode: "closed" });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
-  const { data: suppliers, isLoading, isError, error } = useSuppliers();
+  const { data, isLoading, isError, error, isPlaceholderData } = useSuppliers(page, pageSize);
 
   const editingId = panel.mode === "edit" ? panel.supplierId : null;
   const { data: editSupplier, isLoading: isLoadingDetail } = useSupplier(editingId);
@@ -35,6 +39,9 @@ export function SupplierPage() {
       );
     }
   };
+
+  const suppliers = data?.items ?? [];
+  const totalPages = data?.totalPages ?? 1;
 
   return (
     <div>
@@ -58,7 +65,7 @@ export function SupplierPage() {
         </p>
       )}
 
-      {suppliers && suppliers.length === 0 && (
+      {data && suppliers.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
           <PackageOpen className="mb-4 h-12 w-12 text-gray-300" />
           <p className="mb-1 text-lg font-medium text-gray-600">
@@ -77,11 +84,60 @@ export function SupplierPage() {
         </div>
       )}
 
-      {suppliers && suppliers.length > 0 && (
-        <SupplierTable
-          suppliers={suppliers}
-          onEdit={(id) => setPanel({ mode: "edit", supplierId: id })}
-        />
+      {data && suppliers.length > 0 && (
+        <>
+          <SupplierTable
+            suppliers={suppliers}
+            onEdit={(id) => setPanel({ mode: "edit", supplierId: id })}
+          />
+
+          {(totalPages > 1 || pageSize !== 10) && (
+            <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center gap-4">
+                <span>
+                  Page {data.page} of {totalPages} · {suppliers.length} suppliers
+                </span>
+                <label className="flex items-center gap-1.5">
+                  <span className="text-gray-500">Show</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="rounded-md border px-2 py-1 text-sm"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </button>
+                <button
+                  onClick={() => {
+                    if (!isPlaceholderData && page < totalPages) setPage((p) => p + 1);
+                  }}
+                  disabled={isPlaceholderData || page >= totalPages}
+                  className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {panel.mode !== "closed" && (

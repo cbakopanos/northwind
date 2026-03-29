@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Northwind.Shared.Abstractions;
 using Northwind.Supplier.Application;
 
 namespace Northwind.Supplier.Infrastructure;
@@ -8,19 +9,23 @@ public sealed class SuppliersRepository(
     SupplierDbContext dbContext,
     ILogger<SuppliersRepository> logger) : ISuppliersRepository
 {
-    public async Task<IReadOnlyList<SupplierSummaryDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResult<SupplierSummaryDto>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Fetching suppliers from database");
+        logger.LogInformation("Fetching suppliers from database (page {Page}, pageSize {PageSize})", page, pageSize);
+
+        var totalCount = await dbContext.Suppliers.CountAsync(cancellationToken);
 
         var suppliers = await dbContext.Suppliers
             .AsNoTracking()
             .OrderBy(x => x.CompanyName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(SupplierMappings.ToSummaryDto)
             .ToListAsync(cancellationToken);
 
-        logger.LogInformation("Fetched {SupplierCount} suppliers from database", suppliers.Count);
+        logger.LogInformation("Fetched {SupplierCount} of {TotalCount} suppliers from database", suppliers.Count, totalCount);
 
-        return suppliers;
+        return new PagedResult<SupplierSummaryDto>(suppliers, page, pageSize, totalCount);
     }
 
     public async Task<SupplierDetailsDto?> GetByIdAsync(int supplierId, CancellationToken cancellationToken = default)

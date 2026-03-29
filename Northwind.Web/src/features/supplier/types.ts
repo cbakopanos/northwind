@@ -37,3 +37,11 @@ export interface SupplierRequest {
   address?: Address | null;
   communication?: SupplierCommunication | null;
 }
+
+export interface PagedResult<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
