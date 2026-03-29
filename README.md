@@ -76,6 +76,23 @@ The Vite dev server proxies `/api/*` requests to `http://localhost:5019`.
 
 - [Build workflow](.github/workflows/build.yml): runs on push/PR to `main`, builds both API (`dotnet build`) and Web (`npm ci && npm run build`) in parallel.
 
+### Run CI locally
+
+Install [`act`](https://github.com/nektos/act) to run GitHub Actions workflows locally (requires Docker):
+
+```bash
+brew install act
+act            # run all jobs
+act -j api     # run just the API build
+act -j web     # run just the Web build
+```
+
+Alternatively, use the VS Code build tasks (no Docker required):
+
+- **Build API**: `dotnet build --configuration Release` in `Northwind.Api/`
+- **Build Web**: `npm ci && npm run build` in `Northwind.Web/`
+- **Build All**: runs both in parallel (default build task — `Ctrl+Shift+B`)
+
 ## Quick start
 
 1. Run:

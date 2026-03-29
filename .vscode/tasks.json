@@ -2,6 +2,36 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Build API",
+      "type": "shell",
+      "command": "dotnet build --configuration Release",
+      "options": {
+        "cwd": "${workspaceFolder}/Northwind.Api"
+      },
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Build Web",
+      "type": "shell",
+      "command": "npm ci && npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/Northwind.Web"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build All",
+      "dependsOn": ["Build API", "Build Web"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Northwind.Web: dev",
       "type": "shell",
       "command": "npm run dev",
