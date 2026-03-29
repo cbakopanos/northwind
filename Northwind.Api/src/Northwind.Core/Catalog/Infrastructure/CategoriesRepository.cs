@@ -109,6 +109,12 @@ public sealed class CategoriesRepository(
                 : "Picture for category {CategoryId} was found ({PictureBytes} bytes)",
             categoryId, picture?.Length ?? 0);
 
+        // The Northwind database stores pictures with a 78-byte OLE container
+        // header prepended before the actual BMP data. Strip it before serving.
+        const int oleHeaderLength = 78;
+        if (picture is not null && picture.Length > oleHeaderLength)
+            picture = picture[oleHeaderLength..];
+
         return picture;
     }
 }

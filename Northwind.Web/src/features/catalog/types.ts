@@ -6,6 +6,7 @@ export interface InventoryLevel {
 export interface CategorySummary {
   categoryId: number;
   categoryName: string;
+  hasPicture: boolean;
 }
 
 export interface CategoryDetails {

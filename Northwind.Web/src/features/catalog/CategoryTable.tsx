@@ -13,6 +13,7 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
         <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
           <tr>
             <th className="px-6 py-3 w-16 text-center">#</th>
+            <th className="px-6 py-3 w-24 text-center">Picture</th>
             <th className="px-6 py-3">Category Name</th>
             <th className="px-6 py-3 text-right">Actions</th>
           </tr>
@@ -24,6 +25,17 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
                 <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-500">
                   {c.categoryId}
                 </span>
+              </td>
+              <td className="px-6 py-4 text-center">
+                {c.hasPicture ? (
+                  <img
+                    src={`/api/catalog/categories/${c.categoryId}/picture`}
+                    alt={c.categoryName}
+                    className="mx-auto h-10 w-10 rounded object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-400">—</span>
+                )}
               </td>
               <td className="px-6 py-4 font-medium text-gray-900">
                 {c.categoryName}
@@ -52,6 +64,7 @@ export function CategoryTableSkeleton() {
         <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
           <tr>
             <th className="px-6 py-3 w-16 text-center">#</th>
+            <th className="px-6 py-3 w-24 text-center">Picture</th>
             <th className="px-6 py-3">Category Name</th>
             <th className="px-6 py-3 text-right">Actions</th>
           </tr>
@@ -61,6 +74,9 @@ export function CategoryTableSkeleton() {
             <tr key={i}>
               <td className="px-6 py-4 text-center">
                 <div className="mx-auto h-4 w-6 animate-pulse rounded bg-gray-200" />
+              </td>
+              <td className="px-6 py-4 text-center">
+                <div className="mx-auto h-10 w-10 animate-pulse rounded bg-gray-200" />
               </td>
               <td className="px-6 py-4">
                 <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />

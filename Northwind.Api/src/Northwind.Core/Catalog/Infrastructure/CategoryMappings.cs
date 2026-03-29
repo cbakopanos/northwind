@@ -16,7 +16,8 @@ public static class CategoryMappings
     public static readonly Expression<Func<CategoryEntity, CategorySummaryDto>> ToSummaryDto =
         x => new CategorySummaryDto(
             x.CategoryId,
-            x.CategoryName);
+            x.CategoryName,
+            x.Picture != null);
 
     public static readonly Expression<Func<CategoryEntity, CategoryDetailsDto>> ToDetailsDto =
         x => new CategoryDetailsDto(
