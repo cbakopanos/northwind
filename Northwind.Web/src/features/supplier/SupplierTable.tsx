@@ -12,6 +12,7 @@ export function SupplierTable({ suppliers, onEdit }: SupplierTableProps) {
       <table className="w-full text-left text-sm">
         <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
           <tr>
+            <th className="px-6 py-3 w-16 text-center">#</th>
             <th className="px-6 py-3">Company Name</th>
             <th className="px-6 py-3">Contact Name</th>
             <th className="px-6 py-3">Contact Title</th>
@@ -21,6 +22,11 @@ export function SupplierTable({ suppliers, onEdit }: SupplierTableProps) {
         <tbody className="divide-y">
           {suppliers.map((s) => (
             <tr key={s.supplierId} className="hover:bg-gray-50">
+              <td className="px-6 py-4 text-center">
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-500">
+                  {s.supplierId}
+                </span>
+              </td>
               <td className="px-6 py-4 font-medium text-gray-900">
                 {s.companyName}
               </td>
@@ -53,6 +59,7 @@ export function SupplierTableSkeleton() {
       <table className="w-full text-left text-sm">
         <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
           <tr>
+            <th className="px-6 py-3 w-16 text-center">#</th>
             <th className="px-6 py-3">Company Name</th>
             <th className="px-6 py-3">Contact Name</th>
             <th className="px-6 py-3">Contact Title</th>
@@ -62,6 +69,9 @@ export function SupplierTableSkeleton() {
         <tbody className="divide-y">
           {Array.from({ length: 5 }).map((_, i) => (
             <tr key={i}>
+              <td className="px-6 py-4 text-center">
+                <div className="mx-auto h-4 w-6 animate-pulse rounded bg-gray-200" />
+              </td>
               <td className="px-6 py-4">
                 <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
               </td>

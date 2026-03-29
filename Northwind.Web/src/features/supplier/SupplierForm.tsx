@@ -124,6 +124,15 @@ export function SupplierForm({
                 </p>
               )}
 
+              {!isNew && supplier && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">ID</span>
+                  <span className="inline-flex h-7 items-center rounded-md bg-gray-100 px-2.5 text-sm font-mono text-gray-500">
+                    {supplier.supplierId}
+                  </span>
+                </div>
+              )}
+
               <Field
                 label="Company Name"
                 value={form.companyName}
