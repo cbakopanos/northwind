@@ -8,7 +8,6 @@ public sealed record ProductDetailsDto(
     string? CategoryName,
     string? QuantityPerUnit,
     decimal UnitPrice,
-    short UnitsInStock,
-    short UnitsOnOrder,
+    InventoryLevel Inventory,
     short ReorderLevel,
     bool IsDiscontinued);

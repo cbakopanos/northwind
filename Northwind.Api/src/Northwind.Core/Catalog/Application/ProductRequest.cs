@@ -6,6 +6,5 @@ public sealed record ProductRequest(
     int? CategoryId,
     string? QuantityPerUnit,
     decimal UnitPrice,
-    short UnitsInStock,
-    short UnitsOnOrder,
+    InventoryLevel? Inventory,
     short ReorderLevel);

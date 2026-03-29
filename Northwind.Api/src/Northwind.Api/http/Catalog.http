@@ -75,8 +75,10 @@ Accept: application/json
 	"categoryId": 1,
 	"quantityPerUnit": "24 - 500 ml bottles",
 	"unitPrice": 4.50,
-	"unitsInStock": 120,
-	"unitsOnOrder": 0,
+	"inventory": {
+		"unitsInStock": 120,
+		"unitsOnOrder": 0
+	},
 	"reorderLevel": 25
 }
 
@@ -91,8 +93,10 @@ Accept: application/json
 	"categoryId": 1,
 	"quantityPerUnit": "10 boxes x 20 bags",
 	"unitPrice": 18.00,
-	"unitsInStock": 39,
-	"unitsOnOrder": 0,
+	"inventory": {
+		"unitsInStock": 39,
+		"unitsOnOrder": 0
+	},
 	"reorderLevel": 10
 }
 

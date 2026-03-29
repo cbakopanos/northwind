@@ -12,8 +12,8 @@ public static class ProductMappings
         entity.CategoryId = request.CategoryId;
         entity.QuantityPerUnit = request.QuantityPerUnit;
         entity.UnitPrice = request.UnitPrice;
-        entity.UnitsInStock = request.UnitsInStock;
-        entity.UnitsOnOrder = request.UnitsOnOrder;
+        entity.UnitsInStock = request.Inventory?.UnitsInStock ?? 0;
+        entity.UnitsOnOrder = request.Inventory?.UnitsOnOrder ?? 0;
         entity.ReorderLevel = request.ReorderLevel;
 
         return entity;
@@ -36,8 +36,9 @@ public static class ProductMappings
             x.Category != null ? x.Category.CategoryName : null,
             x.QuantityPerUnit,
             x.UnitPrice,
-            x.UnitsInStock,
-            x.UnitsOnOrder,
+            new InventoryLevel(
+                x.UnitsInStock,
+                x.UnitsOnOrder),
             x.ReorderLevel,
             x.IsDiscontinued);
 }
