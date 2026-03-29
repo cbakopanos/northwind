@@ -16,19 +16,20 @@ jobs:
         with:
           dotnet-version: '10.x'
       - run: dotnet build --configuration Release
+        working-directory: Northwind.Api
 
   web:
     name: Build Web
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/Northwind.Web
+        working-directory: Northwind.Web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: src/Northwind.Web/package-lock.json
+          cache-dependency-path: Northwind.Web/package-lock.json
       - run: npm ci
       - run: npm run build

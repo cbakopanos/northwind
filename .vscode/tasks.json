@@ -6,7 +6,7 @@
       "type": "shell",
       "command": "npm run dev",
       "options": {
-        "cwd": "${workspaceFolder}/src/Northwind.Web"
+        "cwd": "${workspaceFolder}/Northwind.Web"
       },
       "isBackground": true,
       "problemMatcher": {

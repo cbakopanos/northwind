@@ -5,7 +5,7 @@
       "name": "Northwind.Api",
       "type": "dotnet",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj"
+      "projectPath": "${workspaceFolder}/Northwind.Api/src/Northwind.Api/Northwind.Api.csproj"
     },
     {
       "name": "Northwind.Web",
@@ -13,7 +13,7 @@
       "request": "launch",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "cwd": "${workspaceFolder}/src/Northwind.Web",
+      "cwd": "${workspaceFolder}/Northwind.Web",
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"]
     }

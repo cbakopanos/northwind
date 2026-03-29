@@ -17,15 +17,15 @@
 
 ## API setup and inspection
 
-- API project: [src/Northwind.Api](src/Northwind.Api)
-- Core modules project: [src/Northwind.Core](src/Northwind.Core)
-- HTTP request files: [src/Northwind.Api/http](src/Northwind.Api/http)
+- API project: [Northwind.Api/src/Northwind.Api](Northwind.Api/src/Northwind.Api)
+- Core modules project: [Northwind.Api/src/Northwind.Core](Northwind.Api/src/Northwind.Core)
+- HTTP request files: [Northwind.Api/src/Northwind.Api/http](Northwind.Api/src/Northwind.Api/http)
 - Module loading: attribute + reflection discovery (`ModuleAttribute` + `IModule`) with cached startup scan.
 
 Run API:
 
 1. Start the API:
-   - `dotnet run --project src/Northwind.Api/Northwind.Api.csproj`
+   - `dotnet run --project Northwind.Api/src/Northwind.Api/Northwind.Api.csproj`
 2. Verify health:
    - `GET /api/health`
    - `GET /api/catalog/health`
@@ -51,14 +51,14 @@ Run API:
 
 ## Web UI
 
-- Web project: [src/Northwind.Web](src/Northwind.Web)
+- Web project: [Northwind.Web](Northwind.Web)
 - Stack: Vite + React + TypeScript, Tailwind CSS, React Router, TanStack Query.
 - Feature modules: each bounded context has its own folder under `src/features/` with a barrel `index.ts`.
 
 Run Web:
 
 1. Install dependencies (first time only):
-   - `cd src/Northwind.Web && npm ci`
+   - `cd Northwind.Web && npm ci`
 2. Start dev server:
    - `npm run dev`
 3. Open browser:
@@ -85,15 +85,15 @@ The Vite dev server proxies `/api/*` requests to `http://localhost:5019`.
 3. Optionally load sample data:
    - `./database/seeddb.sh`
 4. Start API:
-   - `dotnet run --project src/Northwind.Api/Northwind.Api.csproj`
+   - `dotnet run --project Northwind.Api/src/Northwind.Api/Northwind.Api.csproj`
 5. Start Web:
-   - `cd src/Northwind.Web && npm ci && npm run dev`
+   - `cd Northwind.Web && npm ci && npm run dev`
 6. Open browser:
    - `http://localhost:3000`
 7. Check API contract:
    - `http://localhost:5019/openapi/v1.json`
 8. Try requests from:
-   - [src/Northwind.Api/http](src/Northwind.Api/http)
+   - [Northwind.Api/src/Northwind.Api/http](Northwind.Api/src/Northwind.Api/http)
 9. Read domain docs:
    - [docs/DOMAIN.md](docs/DOMAIN.md)
 10. Open diagram:
