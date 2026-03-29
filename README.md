@@ -9,9 +9,11 @@
 
 ## Database setup
 
-- [Bootstrap script](database/rundb.sh): starts a local PostgreSQL container and loads schema + seed.
-- [Schema](database/init.sql): schema-partitioned bounded contexts (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`) with tables, constraints, views, and functions.
-- [Seed data](database/seed.sql): legacy-form dataset load script (translated to physical snake_case table/column names by bootstrap preprocessing).
+- [Container script](database/rundb.sh): creates/starts a local PostgreSQL container only.
+- [Schema script](database/initdb.sh): applies [database/init.sql](database/init.sql) to create the complete empty database.
+- [Seed script](database/seeddb.sh): optionally loads sample data by executing [database/seed.sql](database/seed.sql) directly.
+- [Schema source](database/init.sql): schema-partitioned bounded contexts (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`) with tables, constraints, views, and functions.
+- [Seed source](database/seed.sql): optional, directly executable sample dataset for the physical snake_case schema.
 
 ## API setup and inspection
 
@@ -51,13 +53,17 @@ Run API:
 
 1. Run:
    - `./database/rundb.sh`
-2. Start API:
+2. Apply schema:
+   - `./database/initdb.sh`
+3. Optionally load sample data:
+   - `./database/seeddb.sh`
+4. Start API:
    - `dotnet run --project src/Northwind.Api/Northwind.Api.csproj`
-3. Check API contract:
+5. Check API contract:
    - `http://localhost:5019/openapi/v1.json`
-4. Try requests from:
+6. Try requests from:
    - [src/Northwind.Api/http](src/Northwind.Api/http)
-5. Read domain docs:
+7. Read domain docs:
    - [docs/DOMAIN.md](docs/DOMAIN.md)
-6. Open diagram:
+8. Open diagram:
    - [docs/DOMAIN.mmd](docs/DOMAIN.mmd)
