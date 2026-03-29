@@ -1,6 +1,7 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { X, Loader2 } from "lucide-react";
-import type { ProductDetails, ProductRequest } from "./types";
+import type { CategorySummary, ProductDetails, ProductRequest } from "./types";
+import { useCategories } from "./useCategoryApi";
 
 interface ProductFormProps {
   product: ProductDetails | null;
@@ -42,6 +43,8 @@ export function ProductForm({
   onClose,
 }: ProductFormProps) {
   const [form, setForm] = useState<ProductRequest>(empty);
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.items ?? [];
 
   useEffect(() => {
     setForm(product ? toRequest(product) : empty);
@@ -114,12 +117,15 @@ export function ProductForm({
                   value={form.supplierId}
                   onChange={(v) => setForm((f) => ({ ...f, supplierId: v }))}
                 />
-                <NumberField
-                  label="Category ID"
-                  value={form.categoryId}
-                  onChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
-                />
               </div>
+
+              <CategoryCombobox
+                key={product?.productId ?? "new"}
+                categoryId={form.categoryId}
+                initialName={product?.categoryName ?? null}
+                categories={categories}
+                onChange={(id) => setForm((f) => ({ ...f, categoryId: id }))}
+              />
 
               <Field
                 label="Quantity Per Unit"
@@ -206,6 +212,84 @@ export function ProductForm({
           </form>
         )}
       </div>
+    </div>
+  );
+}
+
+function CategoryCombobox({
+  categoryId,
+  initialName,
+  categories,
+  onChange,
+}: {
+  categoryId: number | null;
+  initialName: string | null;
+  categories: CategorySummary[];
+  onChange: (id: number | null) => void;
+}) {
+  const [text, setText] = useState(initialName ?? "");
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setText(initialName ?? "");
+  }, [initialName]);
+
+  const filtered = text.trim()
+    ? categories.filter((c) =>
+        c.categoryName.toLowerCase().includes(text.toLowerCase()),
+      )
+    : categories;
+
+  const handleSelect = (c: CategorySummary) => {
+    setText(c.categoryName);
+    onChange(c.categoryId);
+    setOpen(false);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value);
+    onChange(null);
+    setOpen(true);
+  };
+
+  const handleBlur = () => {
+    // Delay so onMouseDown on an option fires before the list closes
+    setTimeout(() => setOpen(false), 150);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-gray-700">
+          Category
+        </span>
+        <input
+          type="text"
+          value={text}
+          onChange={handleChange}
+          onFocus={() => setOpen(true)}
+          onBlur={handleBlur}
+          autoComplete="off"
+          placeholder="Search category…"
+          className="w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        />
+      </label>
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-white text-sm shadow-lg">
+          {filtered.map((c) => (
+            <li
+              key={c.categoryId}
+              onMouseDown={() => handleSelect(c)}
+              className={`cursor-pointer px-3 py-2 hover:bg-blue-50 ${
+                c.categoryId === categoryId ? "bg-blue-50 font-medium" : ""
+              }`}
+            >
+              {c.categoryName}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
