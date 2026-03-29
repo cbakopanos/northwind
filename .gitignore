@@ -31,6 +31,10 @@ packages/
 *.tmp
 *.temp
 
+# Node / Vite
+node_modules/
+dist/
+
 # OS files
 .DS_Store
 Thumbs.db

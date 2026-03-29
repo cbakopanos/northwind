@@ -6,6 +6,23 @@
       "type": "dotnet",
       "request": "launch",
       "projectPath": "${workspaceFolder}/src/Northwind.Api/Northwind.Api.csproj"
+    },
+    {
+      "name": "Northwind.Web",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/src/Northwind.Web",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack",
+      "configurations": ["Northwind.Api", "Northwind.Web"],
+      "stopAll": true
     }
   ]
 }
