@@ -1,7 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { HomePage } from "@/features/home";
-import { CatalogPage } from "@/features/catalog";
+import { CatalogPage, CategoriesPage, ProductsPage } from "@/features/catalog";
 import { CrmPage } from "@/features/crm";
 import { FulfillmentPage } from "@/features/fulfillment";
 import { ReportingPage } from "@/features/reporting";
@@ -14,7 +14,11 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
-        <Route path="catalog" element={<CatalogPage />} />
+        <Route path="catalog" element={<CatalogPage />}>
+          <Route index element={<Navigate to="categories" replace />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="products" element={<ProductsPage />} />
+        </Route>
         <Route path="crm" element={<CrmPage />} />
         <Route path="fulfillment" element={<FulfillmentPage />} />
         <Route path="reporting" element={<ReportingPage />} />
