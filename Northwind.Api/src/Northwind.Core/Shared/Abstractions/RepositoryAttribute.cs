@@ -1,6 +1,6 @@
 namespace Northwind.Shared.Abstractions;
 
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
 public sealed class RepositoryAttribute(Type serviceType, Type implementationType) : Attribute
 {
     public Type ServiceType { get; } = ValidateServiceType(serviceType);

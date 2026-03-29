@@ -3,3 +3,103 @@
 ### Catalog - Health
 GET {{baseUrl}}/api/catalog/health
 Accept: application/json
+
+### ── Categories ─────────────────────────────────────────────
+
+### Catalog - Get All Categories
+GET {{baseUrl}}/api/catalog/categories
+Accept: application/json
+
+### Catalog - Get All Categories (Page 2)
+GET {{baseUrl}}/api/catalog/categories?page=2
+Accept: application/json
+
+### Catalog - Get All Categories (5 per page)
+GET {{baseUrl}}/api/catalog/categories?page=1&pageSize=5
+Accept: application/json
+
+### Catalog - Get Category By Id
+GET {{baseUrl}}/api/catalog/categories/1
+Accept: application/json
+
+### Catalog - Get Category Picture
+GET {{baseUrl}}/api/catalog/categories/1/picture
+Accept: image/bmp
+
+### Catalog - Create Category
+POST {{baseUrl}}/api/catalog/categories
+Content-Type: application/json
+Accept: application/json
+
+{
+	"categoryName": "Organic Foods",
+	"description": "Certified organic produce and products"
+}
+
+### Catalog - Update Category
+PUT {{baseUrl}}/api/catalog/categories/1
+Content-Type: application/json
+Accept: application/json
+
+{
+	"categoryName": "Beverages",
+	"description": "Soft drinks, coffees, teas, beers, and ales"
+}
+
+### ── Products ───────────────────────────────────────────────
+
+### Catalog - Get All Products
+GET {{baseUrl}}/api/catalog/products
+Accept: application/json
+
+### Catalog - Get All Products (Page 2)
+GET {{baseUrl}}/api/catalog/products?page=2
+Accept: application/json
+
+### Catalog - Get All Products (20 per page)
+GET {{baseUrl}}/api/catalog/products?page=1&pageSize=20
+Accept: application/json
+
+### Catalog - Get Product By Id
+GET {{baseUrl}}/api/catalog/products/1
+Accept: application/json
+
+### Catalog - Create Product
+POST {{baseUrl}}/api/catalog/products
+Content-Type: application/json
+Accept: application/json
+
+{
+	"productName": "Sparkling Spring Water",
+	"supplierId": 1,
+	"categoryId": 1,
+	"quantityPerUnit": "24 - 500 ml bottles",
+	"unitPrice": 4.50,
+	"unitsInStock": 120,
+	"unitsOnOrder": 0,
+	"reorderLevel": 25
+}
+
+### Catalog - Update Product
+PUT {{baseUrl}}/api/catalog/products/1
+Content-Type: application/json
+Accept: application/json
+
+{
+	"productName": "Chai",
+	"supplierId": 1,
+	"categoryId": 1,
+	"quantityPerUnit": "10 boxes x 20 bags",
+	"unitPrice": 18.00,
+	"unitsInStock": 39,
+	"unitsOnOrder": 0,
+	"reorderLevel": 10
+}
+
+### Catalog - Discontinue Product
+PATCH {{baseUrl}}/api/catalog/products/1/discontinue
+Accept: application/json
+
+### Catalog - Reinstate Product
+PATCH {{baseUrl}}/api/catalog/products/1/reinstate
+Accept: application/json

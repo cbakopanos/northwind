@@ -82,12 +82,6 @@ public static class NorthwindCoreComposition
                 $"RepositoryAttribute can only decorate IModule implementations. Invalid type: '{moduleType.FullName}'.");
         }
 
-        if (repositoryAttributes.Length > 1)
-        {
-            throw new InvalidOperationException(
-                $"RepositoryAttribute can only be applied once per module. Invalid module: '{moduleType.FullName}'.");
-        }
-
         foreach (var repositoryAttribute in repositoryAttributes)
         {
             if (!repositoryAttribute.IsValidRepositoryRegistration)
