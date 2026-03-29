@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { HomePage } from "@/pages/HomePage";
-import { CatalogPage } from "@/pages/CatalogPage";
-import { CrmPage } from "@/pages/CrmPage";
-import { FulfillmentPage } from "@/pages/FulfillmentPage";
-import { ReportingPage } from "@/pages/ReportingPage";
-import { SalesOrderingPage } from "@/pages/SalesOrderingPage";
-import { SalesOrgPage } from "@/pages/SalesOrgPage";
-import { SupplierPage } from "@/pages/SupplierPage";
+import { HomePage } from "@/features/home";
+import { CatalogPage } from "@/features/catalog";
+import { CrmPage } from "@/features/crm";
+import { FulfillmentPage } from "@/features/fulfillment";
+import { ReportingPage } from "@/features/reporting";
+import { SalesOrderingPage } from "@/features/sales-ordering";
+import { SalesOrgPage } from "@/features/sales-org";
+import { SupplierPage } from "@/features/supplier";
 
 export function App() {
   return (
