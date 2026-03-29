@@ -11,6 +11,7 @@ HOST_PORT="5440"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INIT_SQL="$SCRIPT_DIR/init.sql"
 SEED_SQL="$SCRIPT_DIR/seed.sql"
+SEED_BMP_SQL="$SCRIPT_DIR/seedbmp.sql"
 
 if docker ps -a --format '{{.Names}}' | grep -Fxq "$CONTAINER_NAME"; then
   echo "Error: container '$CONTAINER_NAME' already exists."
@@ -36,5 +37,8 @@ docker exec -i "$CONTAINER_NAME" psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d 
 
 echo "Running seed.sql..."
 docker exec -i "$CONTAINER_NAME" psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" < "$SEED_SQL"
+
+echo "Running seedbmp.sql..."
+docker exec -i "$CONTAINER_NAME" psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" < "$SEED_BMP_SQL"
 
 echo "Done. Database '$POSTGRES_DB' is ready in container '$CONTAINER_NAME'."
