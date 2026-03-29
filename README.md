@@ -49,6 +49,33 @@ Run API:
    - `kill <PID>`
 - Then start the API again.
 
+## Web UI
+
+- Web project: [src/Northwind.Web](src/Northwind.Web)
+- Stack: Vite + React + TypeScript, Tailwind CSS, React Router, TanStack Query.
+- Feature modules: each bounded context has its own folder under `src/features/` with a barrel `index.ts`.
+
+Run Web:
+
+1. Install dependencies (first time only):
+   - `cd src/Northwind.Web && npm ci`
+2. Start dev server:
+   - `npm run dev`
+3. Open browser:
+   - `http://localhost:3000`
+
+The Vite dev server proxies `/api/*` requests to `http://localhost:5019`.
+
+## VS Code launch configurations
+
+- **Northwind.Api**: launches the .NET API.
+- **Northwind.Web**: starts the Vite dev server and opens the browser.
+- **Full Stack**: launches both API and Web together; stopping either stops both.
+
+## CI
+
+- [Build workflow](.github/workflows/build.yml): runs on push/PR to `main`, builds both API (`dotnet build`) and Web (`npm ci && npm run build`) in parallel.
+
 ## Quick start
 
 1. Run:
@@ -59,11 +86,15 @@ Run API:
    - `./database/seeddb.sh`
 4. Start API:
    - `dotnet run --project src/Northwind.Api/Northwind.Api.csproj`
-5. Check API contract:
+5. Start Web:
+   - `cd src/Northwind.Web && npm ci && npm run dev`
+6. Open browser:
+   - `http://localhost:3000`
+7. Check API contract:
    - `http://localhost:5019/openapi/v1.json`
-6. Try requests from:
+8. Try requests from:
    - [src/Northwind.Api/http](src/Northwind.Api/http)
-7. Read domain docs:
+9. Read domain docs:
    - [docs/DOMAIN.md](docs/DOMAIN.md)
-8. Open diagram:
-   - [docs/DOMAIN.mmd](docs/DOMAIN.mmd)
+10. Open diagram:
+    - [docs/DOMAIN.mmd](docs/DOMAIN.mmd)
