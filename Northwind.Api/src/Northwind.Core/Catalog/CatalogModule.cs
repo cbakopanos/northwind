@@ -14,7 +14,7 @@ public sealed class CatalogModule : IModule
         endpoints.MapGet("/api/catalog/health", (ILogger<CatalogModule> logger) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Catalog");
-            return Results.Ok(new { context = "Catalog", status = "ok" });
+            return Results.Ok(new { context = "Catalog", status = "ok", count = 0 });
         });
 
         return endpoints;

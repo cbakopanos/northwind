@@ -75,4 +75,16 @@ public sealed class SuppliersRepository(
         logger.LogInformation("Updated supplier {SupplierId}", supplierId);
         return true;
     }
+
+    public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("Fetching supplier count from database");
+
+        var count = await dbContext.Suppliers
+            .CountAsync(cancellationToken);
+
+        logger.LogInformation("{SupplierCount} suppliers found", count);
+
+        return count;
+    }
 }

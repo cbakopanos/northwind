@@ -15,10 +15,11 @@ public sealed class SupplierModule : IModule
 {
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/api/supplier/health", (ILogger<SupplierModule> logger) =>
+        endpoints.MapGet("/api/supplier/health", async (ISuppliersRepository repository, ILogger<SupplierModule> logger, CancellationToken cancellationToken) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Supplier");
-            return Results.Ok(new { context = "Supplier", status = "ok" });
+            var count = await repository.GetCountAsync(cancellationToken);
+            return Results.Ok(new { context = "Supplier", status = "ok", count = count });
         });
 
         endpoints.MapGet(

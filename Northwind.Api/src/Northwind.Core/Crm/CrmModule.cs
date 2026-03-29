@@ -14,7 +14,7 @@ public sealed class CrmModule : IModule
         endpoints.MapGet("/api/crm/health", (ILogger<CrmModule> logger) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Crm");
-            return Results.Ok(new { context = "Crm", status = "ok" });
+            return Results.Ok(new { context = "Crm", status = "ok", count = 0 });
         });
 
         return endpoints;

@@ -11,11 +11,11 @@ public sealed class SalesOrgModule : IModule
 {
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/api/sales-org/health", (ILogger<SalesOrgModule> logger) =>
+        /*endpoints.MapGet("/api/sales-org/health", (ILogger<SalesOrgModule> logger) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "SalesOrg");
-            return Results.Ok(new { context = "SalesOrg", status = "ok" });
-        });
+            return Results.Ok(new { context = "SalesOrg", status = "ok", count = 0 });
+        });*/
 
         return endpoints;
     }

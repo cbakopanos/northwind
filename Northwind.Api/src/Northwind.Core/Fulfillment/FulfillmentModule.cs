@@ -14,7 +14,7 @@ public sealed class FulfillmentModule : IModule
         endpoints.MapGet("/api/fulfillment/health", (ILogger<FulfillmentModule> logger) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Fulfillment");
-            return Results.Ok(new { context = "Fulfillment", status = "ok" });
+            return Results.Ok(new { context = "Fulfillment", status = "ok", count = 0 });
         });
 
         return endpoints;

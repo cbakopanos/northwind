@@ -10,6 +10,7 @@ import type {
 } from "./types";
 
 const SUPPLIERS_KEY = ["suppliers"];
+const SUPPLIER_HEALTH_KEY = ["health", "/api/supplier/health"];
 
 export function useSuppliers() {
   return useQuery({
@@ -50,7 +51,10 @@ export function useCreateSupplier() {
       }
       return res.json();
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_HEALTH_KEY });
+    },
   });
 }
 
@@ -75,6 +79,9 @@ export function useUpdateSupplier() {
         throw new Error(body?.error ?? `${res.status} ${res.statusText}`);
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_HEALTH_KEY });
+    },
   });
 }

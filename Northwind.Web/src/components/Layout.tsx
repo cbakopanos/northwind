@@ -25,7 +25,7 @@ const navItems = [
 ];
 
 function NavItem({ to, label, icon: Icon, health }: (typeof navItems)[number]) {
-  const { isError } = useHealthCheck(health);
+  const { data, isError } = useHealthCheck(health);
 
   return (
     <NavLink
@@ -43,6 +43,11 @@ function NavItem({ to, label, icon: Icon, health }: (typeof navItems)[number]) {
       <Icon className="h-4 w-4" />
       {label}
       {isError && <AlertCircle className="ml-auto h-4 w-4 shrink-0 text-red-500" />}
+      {!isError && data?.count != null && (
+        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-xs font-semibold text-white">
+          {data.count}
+        </span>
+      )}
     </NavLink>
   );
 }
