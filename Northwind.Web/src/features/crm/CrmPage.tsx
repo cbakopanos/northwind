@@ -12,7 +12,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 export function CrmPage() {
   const [panel, setPanel] = useState<PanelState>({ mode: "closed" });
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(20);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const { data, isLoading, isError, error, isPlaceholderData } = useCustomers(page, pageSize);
 

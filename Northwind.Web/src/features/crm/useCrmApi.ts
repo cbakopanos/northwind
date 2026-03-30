@@ -4,7 +4,7 @@ import type { CustomerSummary, CustomerDetails, CustomerRequest, PagedResult } f
 const CUSTOMERS_KEY = "customers";
 const CRM_HEALTH_KEY = ["health", "/api/crm/health"];
 
-export function useCustomers(page: number = 1, pageSize: number = 20) {
+export function useCustomers(page: number = 1, pageSize: number = 10) {
   return useQuery({
     queryKey: [CUSTOMERS_KEY, page, pageSize],
     queryFn: async (): Promise<PagedResult<CustomerSummary>> => {
