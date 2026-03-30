@@ -7,7 +7,6 @@ import type {
   CategorySummary,
   CategoryDetails,
   CategoryRequest,
-  PagedResult,
 } from "./types";
 
 const CATEGORIES_KEY = "categories";
@@ -16,8 +15,8 @@ const CATALOG_HEALTH_KEY = ["health", "/api/catalog/health"];
 export function useCategories() {
   return useQuery({
     queryKey: [CATEGORIES_KEY],
-    queryFn: async (): Promise<PagedResult<CategorySummary>> => {
-      const res = await fetch("/api/catalog/categories?pageSize=100");
+    queryFn: async (): Promise<CategorySummary[]> => {
+      const res = await fetch("/api/catalog/categories");
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       return res.json();
     },

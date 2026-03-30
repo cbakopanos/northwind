@@ -36,7 +36,7 @@ export function CategoriesPage() {
     }
   };
 
-  const categories = data?.items ?? [];
+  const categories = data ?? [];
 
   return (
     <div>

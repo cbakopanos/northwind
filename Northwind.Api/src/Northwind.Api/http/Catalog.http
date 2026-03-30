@@ -10,14 +10,6 @@ Accept: application/json
 GET {{baseUrl}}/api/catalog/categories
 Accept: application/json
 
-### Catalog - Get All Categories (Page 2)
-GET {{baseUrl}}/api/catalog/categories?page=2
-Accept: application/json
-
-### Catalog - Get All Categories (5 per page)
-GET {{baseUrl}}/api/catalog/categories?page=1&pageSize=5
-Accept: application/json
-
 ### Catalog - Get Category By Id
 GET {{baseUrl}}/api/catalog/categories/1
 Accept: application/json

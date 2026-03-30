@@ -28,20 +28,18 @@ public sealed class CatalogModule : IModule
 
         endpoints.MapGet(
             "/api/catalog/categories",
-            async (int? page, int? pageSize, ICategoriesRepository query, ILogger<CatalogModule> logger, CancellationToken cancellationToken) =>
+            async (ICategoriesRepository query, ILogger<CatalogModule> logger, CancellationToken cancellationToken) =>
             {
-                var currentPage = page ?? 1;
-                var currentPageSize = Math.Clamp(pageSize ?? 10, 1, 100);
-                logger.LogInformation("Handling {Endpoint} (page {Page}, pageSize {PageSize})", "GET /api/catalog/categories", currentPage, currentPageSize);
+                logger.LogInformation("Handling {Endpoint}", "GET /api/catalog/categories");
 
-                var result = await query.GetAllAsync(currentPage, currentPageSize, cancellationToken);
+                var categories = await query.GetAllAsync(cancellationToken);
 
-                logger.LogInformation("Returning {CategoryCount} of {TotalCount} categories", result.Items.Count, result.TotalCount);
-                return Results.Ok(result);
+                logger.LogInformation("Returning {CategoryCount} categories", categories.Count);
+                return Results.Ok(categories);
             })
             .WithName("GetAllCategories")
             .WithTags("Catalog")
-            .Produces<PagedResult<CategorySummaryDto>>(StatusCodes.Status200OK);
+            .Produces<IReadOnlyList<CategorySummaryDto>>(StatusCodes.Status200OK);
 
         endpoints.MapGet(
             "/api/catalog/categories/{categoryId:int}",

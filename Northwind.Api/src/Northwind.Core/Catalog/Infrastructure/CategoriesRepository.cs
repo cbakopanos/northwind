@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Northwind.Catalog.Application;
-using Northwind.Shared.Abstractions;
 
 namespace Northwind.Catalog.Infrastructure;
 
@@ -21,23 +20,19 @@ public sealed class CategoriesRepository(
         return count;
     }
 
-    public async Task<PagedResult<CategorySummaryDto>> GetAllAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CategorySummaryDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Fetching categories from database (page {Page}, pageSize {PageSize})", page, pageSize);
-
-        var totalCount = await dbContext.Categories.CountAsync(cancellationToken);
+        logger.LogInformation("Fetching categories from database");
 
         var categories = await dbContext.Categories
             .AsNoTracking()
             .OrderBy(x => x.CategoryName)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .Select(CategoryMappings.ToSummaryDto)
             .ToListAsync(cancellationToken);
 
-        logger.LogInformation("Fetched {CategoryCount} of {TotalCount} categories from database", categories.Count, totalCount);
+        logger.LogInformation("Fetched {CategoryCount} categories from database", categories.Count);
 
-        return new PagedResult<CategorySummaryDto>(categories, page, pageSize, totalCount);
+        return categories;
     }
 
     public async Task<CategoryDetailsDto?> GetByIdAsync(int categoryId, CancellationToken cancellationToken = default)

@@ -44,7 +44,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const [form, setForm] = useState<ProductRequest>(empty);
   const { data: categoriesData } = useCategories();
-  const categories = categoriesData?.items ?? [];
+  const categories = categoriesData ?? [];
 
   useEffect(() => {
     setForm(product ? toRequest(product) : empty);
