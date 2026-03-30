@@ -1,5 +1,39 @@
 # Northwind
 
+## Prerequisites
+
+Install the following before cloning and building.
+
+### OS-level tools
+
+| Tool | macOS | Windows |
+|------|-------|---------|
+| **Git** | `brew install git` | [git-scm.com](https://git-scm.com/) |
+| **.NET 10 SDK** | `brew install dotnet@10` | [dot.net/download](https://dot.net/download) |
+| **Node.js 22+** | `brew install node` | [nodejs.org](https://nodejs.org/) (LTS) |
+| **Docker Desktop** | [docker.com](https://www.docker.com/products/docker-desktop/) | [docker.com](https://www.docker.com/products/docker-desktop/) |
+
+> Docker is only needed for the PostgreSQL database container.
+
+### VS Code extensions
+
+Install [Visual Studio Code](https://code.visualstudio.com/), then add these extensions:
+
+| Extension | ID |
+|-----------|----|
+| C# Dev Kit | `ms-dotnettools.csdevkit` |
+| REST Client | `humao.rest-client` |
+
+### Verify your setup
+
+```bash
+git --version            # any recent version
+dotnet --version         # 10.x
+node --version           # 22.x or later
+npm --version            # 10.x or later
+docker --version         # any recent version
+```
+
 ## Documentation
 
 - [Domain proposal](docs/DOMAIN.md): DDD proposal with bounded contexts, aggregates, contracts, and context map.
