@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Plus, PackageOpen, ChevronLeft, ChevronRight } from "lucide-react";
-import { HealthStatus } from "@/components/HealthStatus";
 import { useCustomers, useCustomer, useCreateCustomer, useUpdateCustomer } from "./useCrmApi";
 import { CrmTable, CrmTableSkeleton } from "./CrmTable";
 import { CrmForm } from "./CrmForm";
