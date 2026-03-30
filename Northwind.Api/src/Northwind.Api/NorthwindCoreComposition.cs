@@ -1,17 +1,18 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Northwind.Shared.Abstractions;
 
 namespace Northwind;
 
 public static class NorthwindCoreComposition
 {
-    private static readonly Lazy<IReadOnlyList<IModule>> Modules = new(DiscoverModules);
-    private const string DefaultNorthwindConnectionString = "Host=localhost;Port=5435;Database=northwind;Username=postgres;Password=postgres";
+    private const string DefaultNorthwindConnectionString =
+        "Host=localhost;Port=5435;Database=northwind;Username=postgres;Password=postgres";
 
-    public static IServiceCollection AddNorthwindCoreModules(this IServiceCollection services, IConfiguration configuration)
+    private static readonly Lazy<IReadOnlyList<IModule>> Modules = new(DiscoverModules);
+
+    public static IServiceCollection AddNorthwindCoreModules(this IServiceCollection services,
+        IConfiguration configuration)
     {
         foreach (var module in Modules.Value)
         {
@@ -24,10 +25,7 @@ public static class NorthwindCoreComposition
 
     public static IEndpointRouteBuilder MapNorthwindCoreModuleEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        foreach (var module in Modules.Value)
-        {
-            endpoints = module.MapEndpoints(endpoints);
-        }
+        foreach (var module in Modules.Value) endpoints = module.MapEndpoints(endpoints);
 
         return endpoints;
     }
@@ -38,31 +36,25 @@ public static class NorthwindCoreComposition
         IConfiguration configuration)
     {
         var infrastructureAttributes = moduleType
-            .GetCustomAttributes<InfrastructureAttribute>(inherit: false)
+            .GetCustomAttributes<InfrastructureAttribute>(false)
             .ToArray();
 
         if (infrastructureAttributes.Length > 0 && !typeof(IModule).IsAssignableFrom(moduleType))
-        {
             throw new InvalidOperationException(
                 $"InfrastructureAttribute can only decorate IModule implementations. Invalid type: '{moduleType.FullName}'.");
-        }
 
         if (infrastructureAttributes.Length > 1)
-        {
             throw new InvalidOperationException(
                 $"InfrastructureAttribute can only be applied once per module. Invalid module: '{moduleType.FullName}'.");
-        }
 
         foreach (var infrastructureAttribute in infrastructureAttributes)
         {
             if (!infrastructureAttribute.IsValidDbContextType)
-            {
                 throw new InvalidOperationException(
                     $"InfrastructureAttribute on '{moduleType.FullName}' has invalid DbContext type '{infrastructureAttribute.DbContextType.FullName}'.");
-            }
 
             var connectionString = configuration.GetConnectionString(infrastructureAttribute.ConnectionStringName)
-                ?? DefaultNorthwindConnectionString;
+                                   ?? DefaultNorthwindConnectionString;
 
             services = services.AddDbContextByType(infrastructureAttribute.DbContextType, connectionString);
         }
@@ -73,22 +65,18 @@ public static class NorthwindCoreComposition
     private static IServiceCollection AddModuleRepositories(this IServiceCollection services, Type moduleType)
     {
         var repositoryAttributes = moduleType
-            .GetCustomAttributes<RepositoryAttribute>(inherit: false)
+            .GetCustomAttributes<RepositoryAttribute>(false)
             .ToArray();
 
         if (repositoryAttributes.Length > 0 && !typeof(IModule).IsAssignableFrom(moduleType))
-        {
             throw new InvalidOperationException(
                 $"RepositoryAttribute can only decorate IModule implementations. Invalid type: '{moduleType.FullName}'.");
-        }
 
         foreach (var repositoryAttribute in repositoryAttributes)
         {
             if (!repositoryAttribute.IsValidRepositoryRegistration)
-            {
                 throw new InvalidOperationException(
                     $"RepositoryAttribute on '{moduleType.FullName}' has invalid registration '{repositoryAttribute.ServiceType.FullName}' -> '{repositoryAttribute.ImplementationType.FullName}'.");
-            }
 
             services.AddScoped(repositoryAttribute.ServiceType, repositoryAttribute.ImplementationType);
         }
@@ -132,7 +120,7 @@ public static class NorthwindCoreComposition
             .Where(t => t.IsClass && !t.IsAbstract && typeof(IModule).IsAssignableFrom(t))
             .Select(t =>
             {
-                var attribute = t.GetCustomAttribute<ModuleAttribute>(inherit: false);
+                var attribute = t.GetCustomAttribute<ModuleAttribute>(false);
                 return attribute is null ? null : new ModuleDescriptor(t, attribute);
             })
             .Where(x => x is not null)
@@ -144,10 +132,7 @@ public static class NorthwindCoreComposition
 
     private static IModule CreateModuleInstance(Type moduleType)
     {
-        if (Activator.CreateInstance(moduleType) is IModule module)
-        {
-            return module;
-        }
+        if (Activator.CreateInstance(moduleType) is IModule module) return module;
 
         throw new InvalidOperationException(
             $"Module '{moduleType.FullName}' could not be created. Ensure it has a public parameterless constructor.");

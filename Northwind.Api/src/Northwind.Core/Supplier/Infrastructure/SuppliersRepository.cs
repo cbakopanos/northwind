@@ -9,7 +9,8 @@ public sealed class SuppliersRepository(
     SupplierDbContext dbContext,
     ILogger<SuppliersRepository> logger) : ISuppliersRepository
 {
-    public async Task<PagedResult<SupplierSummaryDto>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<SupplierSummaryDto>> GetAllAsync(int page = 1, int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Fetching suppliers from database (page {Page}, pageSize {PageSize})", page, pageSize);
 
@@ -23,7 +24,8 @@ public sealed class SuppliersRepository(
             .Select(SupplierMappings.ToSummaryDto)
             .ToListAsync(cancellationToken);
 
-        logger.LogInformation("Fetched {SupplierCount} of {TotalCount} suppliers from database", suppliers.Count, totalCount);
+        logger.LogInformation("Fetched {SupplierCount} of {TotalCount} suppliers from database", suppliers.Count,
+            totalCount);
 
         return new PagedResult<SupplierSummaryDto>(suppliers, page, pageSize, totalCount);
     }
@@ -61,7 +63,8 @@ public sealed class SuppliersRepository(
         return entity.SupplierId;
     }
 
-    public async Task<bool> UpdateAsync(int supplierId, SupplierRequest request, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(int supplierId, SupplierRequest request,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Updating supplier {SupplierId}", supplierId);
 

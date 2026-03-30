@@ -68,7 +68,8 @@ public sealed class CategoriesRepository(
         return entity.CategoryId;
     }
 
-    public async Task<bool> UpdateAsync(int categoryId, CategoryRequest request, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(int categoryId, CategoryRequest request,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Updating category {CategoryId}", categoryId);
 

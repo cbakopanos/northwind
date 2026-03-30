@@ -5,20 +5,6 @@ namespace Northwind.Catalog.Infrastructure;
 
 public static class ProductMappings
 {
-    public static ProductEntity ToProductEntity(this ProductEntity entity, ProductRequest request)
-    {
-        entity.ProductName = request.ProductName.Trim();
-        entity.SupplierId = request.SupplierId;
-        entity.CategoryId = request.CategoryId;
-        entity.QuantityPerUnit = request.QuantityPerUnit;
-        entity.UnitPrice = request.UnitPrice;
-        entity.UnitsInStock = request.Inventory?.UnitsInStock ?? 0;
-        entity.UnitsOnOrder = request.Inventory?.UnitsOnOrder ?? 0;
-        entity.ReorderLevel = request.ReorderLevel;
-
-        return entity;
-    }
-
     public static readonly Expression<Func<ProductEntity, ProductSummaryDto>> ToSummaryDto =
         x => new ProductSummaryDto(
             x.ProductId,
@@ -41,4 +27,18 @@ public static class ProductMappings
                 x.UnitsOnOrder),
             x.ReorderLevel,
             x.IsDiscontinued);
+
+    public static ProductEntity ToProductEntity(this ProductEntity entity, ProductRequest request)
+    {
+        entity.ProductName = request.ProductName.Trim();
+        entity.SupplierId = request.SupplierId;
+        entity.CategoryId = request.CategoryId;
+        entity.QuantityPerUnit = request.QuantityPerUnit;
+        entity.UnitPrice = request.UnitPrice;
+        entity.UnitsInStock = request.Inventory?.UnitsInStock ?? 0;
+        entity.UnitsOnOrder = request.Inventory?.UnitsOnOrder ?? 0;
+        entity.ReorderLevel = request.ReorderLevel;
+
+        return entity;
+    }
 }

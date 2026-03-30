@@ -6,7 +6,8 @@ public interface IProductsRepository
 {
     Task<int> GetCountAsync(CancellationToken cancellationToken = default);
 
-    Task<PagedResult<ProductSummaryDto>> GetAllAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default);
+    Task<PagedResult<ProductSummaryDto>> GetAllAsync(int page = 1, int pageSize = 10,
+        CancellationToken cancellationToken = default);
 
     Task<ProductDetailsDto?> GetByIdAsync(int productId, CancellationToken cancellationToken = default);
 

@@ -5,14 +5,6 @@ namespace Northwind.Catalog.Infrastructure;
 
 public static class CategoryMappings
 {
-    public static CategoryEntity ToCategoryEntity(this CategoryEntity entity, CategoryRequest request)
-    {
-        entity.CategoryName = request.CategoryName.Trim();
-        entity.Description = request.Description;
-
-        return entity;
-    }
-
     public static readonly Expression<Func<CategoryEntity, CategorySummaryDto>> ToSummaryDto =
         x => new CategorySummaryDto(
             x.CategoryId,
@@ -25,4 +17,12 @@ public static class CategoryMappings
             x.CategoryName,
             x.Description,
             x.Picture != null);
+
+    public static CategoryEntity ToCategoryEntity(this CategoryEntity entity, CategoryRequest request)
+    {
+        entity.CategoryName = request.CategoryName.Trim();
+        entity.Description = request.Description;
+
+        return entity;
+    }
 }

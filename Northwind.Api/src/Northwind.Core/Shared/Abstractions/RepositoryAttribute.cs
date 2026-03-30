@@ -9,9 +9,7 @@ public sealed class RepositoryAttribute(Type serviceType, Type implementationTyp
 
     public bool IsValidRepositoryRegistration =>
         ServiceType.IsAssignableFrom(ImplementationType)
-        && ImplementationType.IsClass
-        && !ImplementationType.IsAbstract
-        && ImplementationType.IsSealed;
+        && ImplementationType is { IsClass: true, IsAbstract: false, IsSealed: true };
 
     private static Type ValidateServiceType(Type serviceType)
     {
@@ -25,32 +23,24 @@ public sealed class RepositoryAttribute(Type serviceType, Type implementationTyp
         ArgumentNullException.ThrowIfNull(implementationType);
 
         if (!implementationType.IsClass)
-        {
             throw new ArgumentException(
                 $"Repository implementation type '{implementationType.FullName}' must be a class.",
                 nameof(implementationType));
-        }
 
         if (implementationType.IsAbstract)
-        {
             throw new ArgumentException(
                 $"Repository implementation type '{implementationType.FullName}' must not be abstract.",
                 nameof(implementationType));
-        }
 
         if (!implementationType.IsSealed)
-        {
             throw new ArgumentException(
                 $"Repository implementation type '{implementationType.FullName}' must be sealed.",
                 nameof(implementationType));
-        }
 
         if (!serviceType.IsAssignableFrom(implementationType))
-        {
             throw new ArgumentException(
                 $"Repository implementation type '{implementationType.FullName}' must implement/derive from '{serviceType.FullName}'.",
                 nameof(implementationType));
-        }
 
         return implementationType;
     }

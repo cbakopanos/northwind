@@ -26,23 +26,23 @@ Content-Type: application/json
 Accept: application/json
 
 {
-	"companyName": "Acme Industrial Partners",
-	"contact": {
-		"contactName": "Alex Cooper",
-		"contactTitle": "Procurement Manager"
-	},
-	"address": {
-		"addressLine": "42 Market Street",
-		"city": "Athens",
-		"region": "Attica",
-		"postalCode": "10552",
-		"country": "Greece"
-	},
-	"communication": {
-		"phone": "+30-210-555-1111",
-		"fax": "+30-210-555-2222",
-		"homepageUrl": "https://acme.example.com"
-	}
+  "companyName": "Acme Industrial Partners",
+  "contact": {
+    "contactName": "Alex Cooper",
+    "contactTitle": "Procurement Manager"
+  },
+  "address": {
+    "addressLine": "42 Market Street",
+    "city": "Athens",
+    "region": "Attica",
+    "postalCode": "10552",
+    "country": "Greece"
+  },
+  "communication": {
+    "phone": "+30-210-555-1111",
+    "fax": "+30-210-555-2222",
+    "homepageUrl": "https://acme.example.com"
+  }
 }
 
 ### Supplier - Update Supplier
@@ -51,21 +51,21 @@ Content-Type: application/json
 Accept: application/json
 
 {
-	"companyName": "Acme Industrial Partners Updated",
-	"contact": {
-		"contactName": "Alex Cooper",
-		"contactTitle": "Head of Procurement"
-	},
-	"address": {
-		"addressLine": "44 Market Street",
-		"city": "Athens",
-		"region": "Attica",
-		"postalCode": "10552",
-		"country": "Greece"
-	},
-	"communication": {
-		"phone": "+30-210-555-3333",
-		"fax": "+30-210-555-4444",
-		"homepageUrl": "https://acme.example.com"
-	}
+  "companyName": "Acme Industrial Partners Updated",
+  "contact": {
+    "contactName": "Alex Cooper",
+    "contactTitle": "Head of Procurement"
+  },
+  "address": {
+    "addressLine": "44 Market Street",
+    "city": "Athens",
+    "region": "Attica",
+    "postalCode": "10552",
+    "country": "Greece"
+  },
+  "communication": {
+    "phone": "+30-210-555-3333",
+    "fax": "+30-210-555-4444",
+    "homepageUrl": "https://acme.example.com"
+  }
 }

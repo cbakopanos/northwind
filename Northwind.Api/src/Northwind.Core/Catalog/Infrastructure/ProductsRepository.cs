@@ -21,7 +21,8 @@ public sealed class ProductsRepository(
         return count;
     }
 
-    public async Task<PagedResult<ProductSummaryDto>> GetAllAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<ProductSummaryDto>> GetAllAsync(int page = 1, int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Fetching products from database (page {Page}, pageSize {PageSize})", page, pageSize);
 
@@ -36,7 +37,8 @@ public sealed class ProductsRepository(
             .Select(ProductMappings.ToSummaryDto)
             .ToListAsync(cancellationToken);
 
-        logger.LogInformation("Fetched {ProductCount} of {TotalCount} products from database", products.Count, totalCount);
+        logger.LogInformation("Fetched {ProductCount} of {TotalCount} products from database", products.Count,
+            totalCount);
 
         return new PagedResult<ProductSummaryDto>(products, page, pageSize, totalCount);
     }
@@ -75,7 +77,8 @@ public sealed class ProductsRepository(
         return entity.ProductId;
     }
 
-    public async Task<bool> UpdateAsync(int productId, ProductRequest request, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(int productId, ProductRequest request,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Updating product {ProductId}", productId);
 
