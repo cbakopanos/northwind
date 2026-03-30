@@ -71,7 +71,8 @@ CREATE TABLE crm.customers (
     postal_code varchar(10),
     country varchar(15),
     phone varchar(24),
-    fax varchar(24)
+    fax varchar(24),
+    homepage_url text
 );
 
 
