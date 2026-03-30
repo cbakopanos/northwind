@@ -13,7 +13,7 @@ import { ProductForm } from "./ProductForm";
 import { Pagination } from "@/components/Pagination";
 import type { ProductRequest } from "./types";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
 type PanelState =
   | { mode: "closed" }
@@ -23,8 +23,9 @@ type PanelState =
 export function ProductsPage() {
   const [panel, setPanel] = useState<PanelState>({ mode: "closed" });
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
-  const { data, isLoading, isError, error } = useProducts(page, PAGE_SIZE);
+  const { data, isLoading, isError, error, isPlaceholderData } = useProducts(page, pageSize);
 
   const editingId = panel.mode === "edit" ? panel.productId : null;
   const { data: editProduct, isLoading: isLoadingDetail } = useProduct(editingId);
@@ -101,17 +102,49 @@ export function ProductsPage() {
             onReinstate={(id) => reinstateMutation.mutate(id)}
           />
 
-          <div className="mt-2 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              Showing {(data.page - 1) * data.pageSize + 1}–
-              {Math.min(data.page * data.pageSize, data.totalCount)} of{" "}
-              {data.totalCount} products
-            </p>
-            <Pagination
-              page={data.page}
-              totalPages={data.totalPages}
-              onPageChange={setPage}
-            />
+          <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500">
+                Showing {(data.page - 1) * data.pageSize + 1}–
+                {Math.min(data.page * data.pageSize, data.totalCount)} of {data.totalCount} products
+              </span>
+              <label className="flex items-center gap-1.5">
+                <span className="text-gray-500">Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="rounded-md border px-2 py-1 text-sm"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={data.page === 1}
+                className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => {
+                  if (!isPlaceholderData && page < data.totalPages) setPage((p) => p + 1);
+                }}
+                disabled={isPlaceholderData || page >= data.totalPages}
+                className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}
