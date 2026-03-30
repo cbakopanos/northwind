@@ -10,7 +10,6 @@ import {
 } from "./useProductApi";
 import { ProductTable, ProductTableSkeleton } from "./ProductTable";
 import { ProductForm } from "./ProductForm";
-import { Pagination } from "@/components/Pagination";
 import type { ProductRequest } from "./types";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
