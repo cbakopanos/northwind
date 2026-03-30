@@ -2,8 +2,8 @@ import { NavLink, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "categories", label: "Categories" },
   { to: "products", label: "Products" },
+  { to: "categories", label: "Categories" },
 ];
 
 export function CatalogPage() {

@@ -15,7 +15,7 @@ export function App() {
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="catalog" element={<CatalogPage />}>
-          <Route index element={<Navigate to="categories" replace />} />
+          <Route index element={<Navigate to="products" replace />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="products" element={<ProductsPage />} />
         </Route>

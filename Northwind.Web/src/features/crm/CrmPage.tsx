@@ -70,7 +70,7 @@ export function CrmPage() {
           {(totalPages > 1 || pageSize !== 20) && (
             <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
               <div className="flex items-center gap-4">
-                <span>Page {data.page} of {totalPages} · {customers.length} customers</span>
+                <span>Showing {(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.totalCount)} of {data.totalCount} customers</span>
                 <label className="flex items-center gap-1.5">
                   <span className="text-gray-500">Show</span>
                   <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }} className="rounded-md border px-2 py-1 text-sm">

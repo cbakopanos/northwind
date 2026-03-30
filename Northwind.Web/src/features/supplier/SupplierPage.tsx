@@ -95,7 +95,7 @@ export function SupplierPage() {
             <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
               <div className="flex items-center gap-4">
                 <span>
-                  Page {data.page} of {totalPages} · {suppliers.length} suppliers
+                  Showing {(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.totalCount)} of {data.totalCount} suppliers
                 </span>
                 <label className="flex items-center gap-1.5">
                   <span className="text-gray-500">Show</span>

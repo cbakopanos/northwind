@@ -15,7 +15,7 @@ import { useHealthCheck } from "@/hooks/useHealthCheck";
 
 const navItems = [
   { to: "/", label: "Home", icon: LayoutDashboard, health: "/api/health" },
-  { to: "/catalog", label: "Catalog", icon: Package, health: "/api/catalog/health" },
+  { to: "/catalog", label: "Catalog", icon: Package, health: "/api/catalog/health", countKey: "products" },
   { to: "/crm", label: "CRM", icon: Users, health: "/api/crm/health" },
   { to: "/fulfillment", label: "Fulfillment", icon: Truck, health: "/api/fulfillment/health" },
   { to: "/reporting", label: "Reporting", icon: BarChart3, health: "/api/reporting/health" },
@@ -24,8 +24,9 @@ const navItems = [
   { to: "/supplier", label: "Supplier", icon: Factory, health: "/api/supplier/health" },
 ];
 
-function NavItem({ to, label, icon: Icon, health }: (typeof navItems)[number]) {
+function NavItem({ to, label, icon: Icon, health, countKey = "count" }: (typeof navItems)[number]) {
   const { data, isError } = useHealthCheck(health);
+  const count = data != null ? (data as Record<string, unknown>)[countKey] : undefined;
 
   return (
     <NavLink
@@ -43,9 +44,9 @@ function NavItem({ to, label, icon: Icon, health }: (typeof navItems)[number]) {
       <Icon className="h-4 w-4" />
       {label}
       {isError && <AlertCircle className="ml-auto h-4 w-4 shrink-0 text-red-500" />}
-      {!isError && data?.count != null && (
+      {!isError && count != null && (
         <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-xs font-semibold text-white">
-          {data.count}
+          {count as number}
         </span>
       )}
     </NavLink>
