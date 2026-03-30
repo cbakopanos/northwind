@@ -10,7 +10,10 @@ import {
 } from "./useProductApi";
 import { ProductTable, ProductTableSkeleton } from "./ProductTable";
 import { ProductForm } from "./ProductForm";
+import { Pagination } from "@/components/Pagination";
 import type { ProductRequest } from "./types";
+
+const PAGE_SIZE = 10;
 
 type PanelState =
   | { mode: "closed" }
@@ -19,8 +22,9 @@ type PanelState =
 
 export function ProductsPage() {
   const [panel, setPanel] = useState<PanelState>({ mode: "closed" });
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading, isError, error } = useProducts();
+  const { data, isLoading, isError, error } = useProducts(page, PAGE_SIZE);
 
   const editingId = panel.mode === "edit" ? panel.productId : null;
   const { data: editProduct, isLoading: isLoadingDetail } = useProduct(editingId);
@@ -89,12 +93,27 @@ export function ProductsPage() {
       )}
 
       {data && products.length > 0 && (
-        <ProductTable
-          products={products}
-          onEdit={(id) => setPanel({ mode: "edit", productId: id })}
-          onDiscontinue={(id) => discontinueMutation.mutate(id)}
-          onReinstate={(id) => reinstateMutation.mutate(id)}
-        />
+        <>
+          <ProductTable
+            products={products}
+            onEdit={(id) => setPanel({ mode: "edit", productId: id })}
+            onDiscontinue={(id) => discontinueMutation.mutate(id)}
+            onReinstate={(id) => reinstateMutation.mutate(id)}
+          />
+
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {(data.page - 1) * data.pageSize + 1}–
+              {Math.min(data.page * data.pageSize, data.totalCount)} of{" "}
+              {data.totalCount} products
+            </p>
+            <Pagination
+              page={data.page}
+              totalPages={data.totalPages}
+              onPageChange={setPage}
+            />
+          </div>
+        </>
       )}
 
       {panel.mode !== "closed" && (

@@ -13,14 +13,19 @@ import type {
 const PRODUCTS_KEY = "products";
 const CATALOG_HEALTH_KEY = ["health", "/api/catalog/health"];
 
-export function useProducts() {
+export function useProducts(page: number = 1, pageSize: number = 10) {
   return useQuery({
-    queryKey: [PRODUCTS_KEY],
+    queryKey: [PRODUCTS_KEY, { page, pageSize }],
     queryFn: async (): Promise<PagedResult<ProductSummary>> => {
-      const res = await fetch("/api/catalog/products?pageSize=100");
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      const res = await fetch(`/api/catalog/products?${params}`);
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       return res.json();
     },
+    placeholderData: (prev) => prev,
   });
 }
 
