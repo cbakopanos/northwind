@@ -3,3 +3,59 @@
 ### Crm - Health
 GET {{baseUrl}}/api/crm/health
 Accept: application/json
+
+### Crm - List Customers
+GET {{baseUrl}}/api/crm/customers?page=1&pageSize=10
+Accept: application/json
+
+### Crm - Get Customer by Id
+GET {{baseUrl}}/api/crm/customers/ALFKI
+Accept: application/json
+
+### Crm - Create Customer
+POST {{baseUrl}}/api/crm/customers
+Content-Type: application/json
+
+{
+	"companyName": "ACME Corp",
+	"contact": {
+		"contactName": "Jane Doe",
+		"contactTitle": "Purchasing Manager"
+	},
+	"address": {
+		"addressLine": "123 Main St",
+		"city": "Metropolis",
+		"region": "NA",
+		"postalCode": "12345",
+		"country": "USA"
+	},
+	"communication": {
+		"phone": "555-0100",
+		"fax": "555-0101",
+		"homepageUrl": "https://acme.example.com"
+	}
+}
+
+### Crm - Update Customer
+PUT {{baseUrl}}/api/crm/customers/ALFKI
+Content-Type: application/json
+
+{
+	"companyName": "ACME Corp Updated",
+	"contact": {
+		"contactName": "Jane Doe",
+		"contactTitle": "Head of Procurement"
+	},
+	"address": {
+		"addressLine": "123 Main St",
+		"city": "Metropolis",
+		"region": "NA",
+		"postalCode": "12345",
+		"country": "USA"
+	},
+	"communication": {
+		"phone": "555-0100",
+		"fax": "555-0101",
+		"homepageUrl": "https://acme.example.com"
+	}
+}
