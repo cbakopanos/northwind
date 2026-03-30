@@ -1,6 +1,8 @@
 {
   "recommendations": [
     "ms-dotnettools.csdevkit",
-    "humao.rest-client"
+    "humao.rest-client",
+    "vstirbu.vscode-mermaid-preview",
+    "ms-ossdata.vscode-pgsql"
   ]
 }

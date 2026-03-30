@@ -12,8 +12,10 @@ Install the following before cloning and building.
 | **.NET 10 SDK** | `brew install dotnet@10` | [dot.net/download](https://dot.net/download) |
 | **Node.js 22+** | `brew install node` | [nodejs.org](https://nodejs.org/) (LTS) |
 | **Docker Desktop** | [docker.com](https://www.docker.com/products/docker-desktop/) | [docker.com](https://www.docker.com/products/docker-desktop/) |
+| **act** *(optional)* | `brew install act` | [nektosact.com](https://nektosact.com/) |
 
 > Docker is only needed for the PostgreSQL database container.
+> [`act`](https://github.com/nektos/act) lets you run GitHub Actions workflows locally (requires Docker).
 
 ### VS Code extensions
 
@@ -23,6 +25,8 @@ Install [Visual Studio Code](https://code.visualstudio.com/), then add these ext
 |-----------|----|
 | C# Dev Kit | `ms-dotnettools.csdevkit` |
 | REST Client | `humao.rest-client` |
+| Mermaid Preview | `vstirbu.vscode-mermaid-preview` |
+| PostgreSQL | `ms-ossdata.vscode-pgsql` |
 
 ### Verify your setup
 
@@ -43,11 +47,11 @@ docker --version         # any recent version
 
 ## Database setup
 
-- [Container script](database/rundb.sh): creates/starts a local PostgreSQL container only.
-- [Schema script](database/initdb.sh): applies [database/init.sql](database/init.sql) to create the complete empty database.
-- [Seed script](database/seeddb.sh): optionally loads sample data by executing [database/seed.sql](database/seed.sql) directly.
-- [Schema source](database/init.sql): schema-partitioned bounded contexts (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`) with tables, constraints, views, and functions.
-- [Seed source](database/seed.sql): optional, directly executable sample dataset for the physical snake_case schema.
+- [rundb.sh](database/rundb.sh) (macOS/Linux) / [rundb.ps1](database/rundb.ps1) (Windows): all-in-one script that creates a PostgreSQL 17 Docker container and applies the schema and seed data in one step.
+- [init.sql](database/init.sql): schema-partitioned bounded contexts (`sales_ordering`, `catalog`, `crm`, `fulfillment`, `sales_org`, `supplier`, `reporting`) with tables, constraints, views, and functions.
+- [seed.sql](database/seed.sql): sample dataset for the physical snake_case schema.
+- [seedbmp.sql](database/seedbmp.sql): category picture data (BMP images stored as bytea).
+- [instnwnd.sql](database/instnwnd.sql): original Northwind reference script (not used by the setup scripts).
 
 ## API setup and inspection
 
@@ -66,7 +70,7 @@ Run API:
    - `GET /api/crm/health`
    - `GET /api/fulfillment/health`
    - `GET /api/sales-ordering/health`
-   - `GET /api/sales-org/health`
+   - ~~`GET /api/sales-org/health`~~ — intentionally commented out to demonstrate the alert indicator in the UI
    - `GET /api/supplier/health`
    - `GET /api/reporting/health`
 3. Verify supplier reads:
@@ -129,23 +133,20 @@ Alternatively, use the VS Code build tasks (no Docker required):
 
 ## Quick start
 
-1. Run:
-   - `./database/rundb.sh`
-2. Apply schema:
-   - `./database/initdb.sh`
-3. Optionally load sample data:
-   - `./database/seeddb.sh`
-4. Start API:
+1. Create and seed the database:
+   - macOS/Linux: `./database/rundb.sh`
+   - Windows: `.\database\rundb.ps1`
+2. Start API:
    - `dotnet run --project Northwind.Api/src/Northwind.Api/Northwind.Api.csproj`
-5. Start Web:
+3. Start Web:
    - `cd Northwind.Web && npm ci && npm run dev`
-6. Open browser:
+4. Open browser:
    - `http://localhost:3000`
-7. Check API contract:
+5. Check API contract:
    - `http://localhost:5019/openapi/v1.json`
-8. Try requests from:
+6. Try requests from:
    - [Northwind.Api/src/Northwind.Api/http](Northwind.Api/src/Northwind.Api/http)
-9. Read domain docs:
+7. Read domain docs:
    - [docs/DOMAIN.md](docs/DOMAIN.md)
-10. Open diagram:
+8. Open diagram:
     - [docs/DOMAIN.mmd](docs/DOMAIN.mmd)
