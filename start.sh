@@ -8,7 +8,20 @@ SERVICE="${SERVICE:-}"
 if [[ -n "${RAILWAY_SERVICE_NAME:-}" ]]; then SERVICE="$RAILWAY_SERVICE_NAME"; fi
 if [[ -n "${RAILWAY_SERVICE:-}" ]]; then SERVICE="$RAILWAY_SERVICE"; fi
 
-# Fallback detection
+# Normalize and map Railway service names to known services
+SERVICE_LOWER=$(echo "$SERVICE" | tr '[:upper:]' '[:lower:]' || true)
+if [[ -n "$SERVICE_LOWER" ]]; then
+  if [[ "$SERVICE_LOWER" == *"api"* ]]; then
+    SERVICE="api"
+  elif [[ "$SERVICE_LOWER" == *"web"* || "$SERVICE_LOWER" == *"frontend"* || "$SERVICE_LOWER" == *"client"* ]]; then
+    SERVICE="web"
+  else
+    # Unknown non-empty service name from Railway; fall back to file detection
+    SERVICE=""
+  fi
+fi
+
+# Fallback detection by presence of project files when SERVICE is still empty
 if [[ -z "$SERVICE" ]]; then
   if [[ -f "Northwind.Api/src/Northwind.Api/Northwind.Api.csproj" ]]; then
     SERVICE="api"
