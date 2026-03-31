@@ -4,7 +4,7 @@ WORKDIR /src
 
 # Copy solution and restore
 COPY . .
-RUN dotnet restore Northwind.slnx
+RUN dotnet restore src/Northwind.Api/Northwind.Api.csproj
 
 # Publish the API project
 RUN dotnet publish src/Northwind.Api/Northwind.Api.csproj -c Release -o /app/publish
