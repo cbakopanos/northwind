@@ -1,0 +1,260 @@
+# Code Review
+
+> **Scope:** SOLID principles · DDD alignment · Maintainability · Scalability · Modularity · Performance  
+> **Date:** April 2026  
+> **Stack:** .NET 10 Minimal API · EF Core 10 · PostgreSQL 17 · React 19 · TypeScript · Vite · TanStack Query
+
+---
+
+## Ratings
+
+| Category | Backend | Frontend | Overall |
+|---|:---:|:---:|:---:|
+| **SOLID** | 8 / 10 | 7 / 10 | **8 / 10** |
+| **DDD** | 6 / 10 | 5 / 10 | **6 / 10** |
+| **Maintainability** | 7 / 10 | 7 / 10 | **7 / 10** |
+| **Scalability** | 6 / 10 | 6 / 10 | **6 / 10** |
+| **Modularity** | 8 / 10 | 7 / 10 | **8 / 10** |
+| **Performance** | 7 / 10 | 6 / 10 | **7 / 10** |
+| **Overall** | **7 / 10** | **6.5 / 10** | **7 / 10** |
+
+---
+
+## 1. SOLID
+
+### Backend — 8 / 10
+
+**✅ Strengths**
+
+- **Single Responsibility** — Each class has one clear job: `ValidationFilter` only validates, `HandlingLogFilter` only logs, `BaseRepository` only manages data access, `PagedResult` only carries paged data.
+- **Open/Closed** — The `IModule` interface combined with reflection-based auto-discovery in `CoreComposition` means adding a new domain requires zero changes to existing code. The `ValidationFilter<T>` generic pipeline similarly extends to new request types for free.
+- **Liskov Substitution** — `BaseRepository<T>` is correctly substitutable. All `IXxxRepository` contracts are honoured by their implementations without surprises.
+- **Dependency Inversion** — All module endpoints depend exclusively on interfaces (`ICategoriesRepository`, `ICustomersRepository`, etc.), never on concrete classes.
+
+**⚠️ Concerns**
+
+- **Interface Segregation** — Repository interfaces (e.g., `ICategoriesRepository`) mix read queries and write commands in a single contract. As modules grow, splitting into `IXxxReadRepository` / `IXxxWriteRepository` would reduce unnecessary coupling.
+
+---
+
+### Frontend — 7 / 10
+
+**✅ Strengths**
+
+- **Single Responsibility** — API hooks (`useCategoryApi`, `useProductApi`, etc.) are separated from UI components. Each component has a single role: page, table, or form.
+- **Open/Closed** — Adding a new feature only requires creating a new folder under `features/`; no existing code needs to change.
+- **Dependency Inversion** — Components depend on hooks, hooks depend on `fetch`/TanStack Query abstractions — no direct coupling to the API URL inside components.
+
+**⚠️ Concerns**
+
+- **Interface Segregation** — `PagedParams`, `PagedResult`, `Address`, and contact-related types are duplicated across `catalog/types.ts`, `crm/types.ts`, and `purchasing/types.ts`. Each feature imports only its own copy, violating ISP by forcing each to know and redefine a broader shared contract.
+- **Single Responsibility (minor)** — `ProductForm` reaches into the Catalog API hook (`useCategoryApi`) to populate a supplier name lookup — a form component pulling cross-domain data directly.
+
+---
+
+## 2. DDD
+
+### Backend — 6 / 10
+
+**✅ Strengths**
+
+- **Bounded contexts are explicit** — Catalog, CRM, Purchasing, Fulfillment, Reporting, SalesOrdering, SalesOrg each map to a dedicated database schema and a self-contained module folder.
+- **Correct layering** — Repository interfaces live in `Application/`, implementations in `Infrastructure/`. The domain layer does not reference EF Core directly.
+- **Value Objects** — `Address`, `Contact`, and `PhoneNumbers` are shared `record` types used consistently across CRM and Purchasing, providing structural equality and immutability.
+- **DTO separation** — `sealed record` DTOs cleanly separate the API surface from the persistence model.
+
+**⚠️ Concerns**
+
+- **No domain entities or aggregates** — `Category`, `Product`, `Customer`, `Supplier` are pure EF data models with no domain behaviour, invariants, or encapsulation. This is acceptable for a CRUD-centric application but means DDD is applied structurally (context boundaries) rather than behaviourally (rich domain model).
+- **Context boundary leak** — `CatalogDbContext` maps `SupplierEntity` from the `purchasing` schema solely to perform a join for supplier names on the product list. This is a direct reach across bounded context boundaries. The correct approach is an anti-corruption layer or a dedicated read-model DTO resolved from the Purchasing context.
+- **No domain events** — There is no eventing infrastructure. Cross-context reactions (e.g., "when an order is placed, update inventory") have no defined pattern yet.
+- **No inter-module contracts** — If SalesOrdering needs to reference a Customer from CRM, the pattern for that is currently undefined.
+
+---
+
+### Frontend — 5 / 10
+
+**✅ Strengths**
+
+- **Feature-sliced structure** mirrors the backend's bounded context layout — one folder per domain.
+- Each feature is self-contained: types, API hooks, and UI are co-located.
+
+**⚠️ Concerns**
+
+- **Shared types duplicated** — `PagedResult<T>`, `PagedParams`, `Address`, `Contact`, and `PhoneNumbers` are redefined independently in each feature's `types.ts`. These are shared domain concepts and should live in a `shared/types.ts` or `lib/types.ts` module.
+- **No ubiquitous language enforcement** — Type names (`CrmEntry`, `SupplierSummary`, `SupplierDetail`) do not always align with the backend's DDD naming (`CustomerSummaryDto`, `SupplierSummaryDto`). Small drift now, wider divergence later.
+- **Stub pages** (`FulfillmentPage`, `ReportingPage`, `SalesOrderingPage`, `SalesOrgPage`) are placeholders with no domain context — acceptable for scaffolding but not DDD-aligned yet.
+
+---
+
+## 3. Maintainability
+
+### Backend — 7 / 10
+
+**✅ Strengths**
+
+- **Consistent patterns** — Every implemented module (Catalog, CRM, Purchasing) is structurally identical. A developer who reads one module can immediately navigate any other.
+- **`file`-scoped route constants** — Route strings are encapsulated inside the module file, invisible to other modules.
+- **`sealed record` DTOs** — Immutability and structural equality are baked in; `sealed` prevents unintended inheritance.
+- **Primary constructor syntax** throughout — idiomatic modern C#.
+- **Skeleton modules** for unimplemented domains stub health endpoints and establish the full architecture surface without blocking delivery.
+
+**⚠️ Concerns**
+
+- **No global exception handling** — There is no `UseExceptionHandler` or `IProblemDetailsService`. Unhandled exceptions will leak stack traces in Development and return empty `500`s in Production.
+- **Validation does not enforce DB-level constraints** — Name fields are validated only for non-empty. The database enforces `varchar(X)` max lengths, but the API will accept strings exceeding those limits, causing opaque `500` errors instead of a `400`.
+- **`SupplierMappings` is empty dead code** — The file exists with no members and unused `using` directives. It should be removed or completed.
+- **Double-logging on health checks** — `BaseRepository.GetCountAsync` logs the count fetch, then the concrete override also logs, producing duplicate log entries per health check call.
+- **Request-timing middleware inlined in `Program.cs`** — The stopwatch lambda is harder to test and reuse. It should be extracted to a proper `IMiddleware` or extension method.
+- **`SuppliersRepository.AddAsync` ID generation** — Catches broad `Exception` (instead of `PostgresException` with error code `23505`) and retries in a loop. A non-PK constraint violation would cause an infinite loop. `Random` is also instantiated per call instead of using `Random.Shared`.
+
+---
+
+### Frontend — 7 / 10
+
+**✅ Strengths**
+
+- **Consistent feature structure** — Types, hooks, table, form, and page components follow the same layout across all implemented features.
+- **TanStack Query** usage is idiomatic: `isPending` / `isError` guards, cache invalidation on mutation, `retry: false` globally.
+- **`@/` path alias** configured in both `tsconfig.json` and `vite.config.ts` — clean absolute imports throughout.
+
+**⚠️ Concerns**
+
+- **`Pagination` component is defined but never used** — `components/Pagination.tsx` implements a proper windowed page-number algorithm. However, `CategoriesPage`, `CustomersPage`, and `SuppliersPage` all implement their own inline Previous/Next pagination, ignoring it. Either adopt it consistently or remove it.
+- **Inline Tailwind classes duplicated** — Form components repeat the same `className` strings across `CrmForm`, `CategoryForm`, `ProductForm`, and `SupplierForm`. Extracting a shared `<TextField>` or `<FormField>` component would reduce noise.
+- **Missing barrel exports** — Only `catalog/` exports via `index.ts`. `crm/` and `purchasing/` import directly from the folder, creating inconsistency.
+- **`useHealthCheck` 5-second hardcoded startup delay** — Every navigation item delays its first health-check fetch by 5000ms. This leaves the sidebar counts blank for 5 seconds on every page load. A shorter delay or smarter retry strategy would improve UX.
+
+---
+
+## 4. Scalability
+
+### Backend — 6 / 10
+
+**✅ Strengths**
+
+- **Pagination** is implemented on Products, Customers, and Suppliers.
+- **`AsNoTracking()`** is consistently applied on all read queries.
+- **Static EF projections** (e.g., `ProductEntity.ToSummary`, `SupplierEntity.ToSummary`) are translated to SQL — no over-fetching of full entity graphs.
+- **No N+1 queries** — `Include` / `Join` is used correctly for joined data.
+
+**⚠️ Concerns**
+
+- **Two DB round-trips per paginated query** — All paginated methods issue a `CountAsync` and then the paged query separately. A single query using `COUNT(*) OVER ()` (raw SQL window function) would halve round-trips at scale.
+- **Multiple `DbContext` instances per request** — Each module has its own `DbContext` (e.g., `CatalogDbContext`, `CrmDbContext`, `SupplierDbContext`), all registered `Scoped`. A cross-module request creates multiple contexts and opens multiple connections. Npgsql's pool mitigates this, but it is worth monitoring.
+- **No caching** — No `IMemoryCache` or `IOutputCache` anywhere. The categories list and health endpoints (static-ish data) are good candidates for short-lived caching.
+- **No async streaming** — All queries materialise full result lists into memory. For large datasets, `IAsyncEnumerable` / streaming would reduce peak memory usage.
+- **Categories are not paginated** — The full categories list is loaded in one query. Acceptable for a small lookup table, but worth revisiting as data grows.
+
+---
+
+### Frontend — 6 / 10
+
+**✅ Strengths**
+
+- **`keepPreviousData`** (`placeholderData: keepPreviousData`) is used in Products, Customers, and Suppliers — prevents loading flicker on page change.
+- **TanStack Query cache** deduplicates simultaneous requests for the same key (e.g., health checks across multiple nav items).
+
+**⚠️ Concerns**
+
+- **8 simultaneous health check queries on initial render** — Each navigation item mounts its own `useHealthCheck`. While TanStack Query deduplicates by key, the architectural design couples navigation rendering to backend liveness, creating 8 parallel network requests on every load.
+- **No lazy loading / code splitting** — All feature pages are eagerly imported in `App.tsx`. Using `React.lazy` + `Suspense` would reduce initial bundle size as the application grows.
+- **No virtual scrolling** — Tables render all returned rows directly. If page sizes grow, large DOM trees will degrade render performance.
+- **`useHealthCheck` 5-second delay** — Covered under Maintainability; also a scalability/UX concern for apps with many modules.
+
+---
+
+## 5. Modularity
+
+### Backend — 8 / 10
+
+**✅ Strengths**
+
+- **Zero inter-module code coupling** (with one exception noted below) — modules share only the `Shared/` contracts.
+- **`IModule` auto-discovery** means new modules are registered with no changes to `Program.cs` or `CoreComposition.cs`.
+- **`file`-scoped route constant classes** ensure route strings are module-private.
+- **Central package management** via `Directory.Packages.props` — only two NuGet packages, no version drift risk.
+- **`FrameworkReference` on `Northwind.Core`** instead of explicit ASP.NET Core package references — correct for a class library consumed by a web host.
+
+**⚠️ Concerns**
+
+- **Context boundary leak in `CatalogDbContext`** — `SupplierEntity` is mapped directly in the Catalog module's `DbContext` as a cross-context join target. This is the only modularity violation in the backend.
+- **No inter-module contracts defined** — If a module needs data from another, the architectural pattern for that (shared read models, domain events, ACL, etc.) is undefined.
+
+---
+
+### Frontend — 7 / 10
+
+**✅ Strengths**
+
+- Each feature folder is fully self-contained — types, hooks, and components are co-located.
+- The `@/` alias enables clean, refactor-safe imports.
+
+**⚠️ Concerns**
+
+- **Shared types are not shared** — `PagedResult<T>`, `PagedParams`, `Address`, `Contact`, and `PhoneNumbers` are duplicated across three feature `types.ts` files instead of living in a `shared/` module.
+- **Inconsistent barrel exports** — Only `catalog/index.ts` exists. `crm/` and `purchasing/` lack barrel files, creating an inconsistent import pattern.
+- **`ProductForm` imports `useCategoryApi`** from the Catalog feature — a cross-feature dependency not mediated by any shared contract.
+
+---
+
+## 6. Performance
+
+### Backend — 7 / 10
+
+| Area | Finding |
+|---|---|
+| Read queries | `AsNoTracking()` consistently applied ✅ |
+| SQL projections | Static `ToSummary` / `ToDetail` expressions translated to SQL ✅ |
+| N+1 | Not present — joins handled correctly ✅ |
+| Pagination | Implemented on most list endpoints ✅ |
+| Count + data | Two round-trips per paginated call ⚠️ |
+| Caching | None ⚠️ |
+| Streaming | None ⚠️ |
+| ID generation retry | `Random` instantiated per call; over-broad exception catch ⚠️ |
+
+---
+
+### Frontend — 6 / 10
+
+| Area | Finding |
+|---|---|
+| Pagination | Implemented with `keepPreviousData` ✅ |
+| Query deduplication | TanStack Query deduplicates by key ✅ |
+| Code splitting | None — all pages eagerly imported ⚠️ |
+| Health checks on load | 8 parallel queries on initial render ⚠️ |
+| Virtual scrolling | Not implemented ⚠️ |
+| 5-second startup delay | Hard-coded delay on every health check ⚠️ |
+
+---
+
+## 7. Key Issues (Priority Order)
+
+| # | Priority | Issue | Location |
+|---|---|---|---|
+| 1 | 🔴 High | No global exception handling — unhandled exceptions return blank `500`s | `Program.cs` |
+| 2 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
+| 3 | 🟠 Medium | Validation does not enforce DB-level max lengths — oversized strings cause `500`s | All command DTOs |
+| 4 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
+| 5 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
+| 6 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
+| 7 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
+| 8 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
+| 9 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
+| 10 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
+| 11 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
+| 12 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
+
+---
+
+## 8. What Is Done Well
+
+- **Reflection-based module auto-discovery** is elegant — `Program.cs` and `CoreComposition.cs` never need to change when a new domain is added.
+- **`file`-scoped route constants** per module prevent global namespace pollution and route string drift.
+- **`IValidatable<T>` + `ValidationFilter<T>`** pipeline is clean, framework-agnostic, and keeps validation logic in the request objects themselves.
+- **`sealed record` DTOs** with primary constructors — immutable, structurally comparable, modern C#.
+- **Skeleton modules** for unimplemented domains establish the full architecture surface from day one without blocking delivery.
+- **EF SQL projections** via static expression fields avoid over-fetching entity graphs.
+- **TanStack Query** usage is idiomatic — pending/error guards, cache invalidation on mutation, `retry: false` globally.
+- **Vite proxy** (`/api` → `http://localhost:5019`) eliminates CORS configuration during development — clean DX.
+- **Nullable-aware codebase** on both sides (`<Nullable>enable</Nullable>` in C#; `strict: true` in TypeScript) — the type system enforces null safety throughout.
