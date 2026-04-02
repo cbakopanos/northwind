@@ -69,6 +69,19 @@ docker --version         # any recent version
 - [Context map diagram](docs/design/DOMAIN.mmd): Mermaid visual context map.
 - [Database reference](docs/DATABASE.md): tables, views, functions, indexes, and constraints.
 - [ER diagram](docs/DATABASE.mmd): Mermaid entity-relationship diagram.
+- [Code review](docs/REVIEW.md): SOLID, DDD, maintainability, scalability, modularity and performance analysis.
+
+### Code Review Ratings
+
+| Category | Backend | Frontend | Overall |
+|---|:---:|:---:|:---:|
+| SOLID | 8 / 10 | 7 / 10 | **8 / 10** |
+| DDD | 6 / 10 | 5 / 10 | **6 / 10** |
+| Maintainability | 7 / 10 | 7 / 10 | **7 / 10** |
+| Scalability | 6 / 10 | 6 / 10 | **6 / 10** |
+| Modularity | 8 / 10 | 7 / 10 | **8 / 10** |
+| Performance | 7 / 10 | 6 / 10 | **7 / 10** |
+| **Overall** | **7 / 10** | **6.5 / 10** | **7 / 10** |
 
 ---
 
