@@ -1,0 +1,55 @@
+erDiagram
+    direction LR
+
+    PURCHASING_SUPPLIERS o|--o{ CATALOG_PRODUCTS : supplies
+    CATALOG_CATEGORIES o|--o{ CATALOG_PRODUCTS : groups
+
+    PURCHASING_SUPPLIERS["[purchasing] suppliers"] {
+        int supplier_id PK
+        string company_name
+        string contact_name
+        string contact_title
+        string address
+        string city
+        string region
+        string postal_code
+        string country
+        string phone
+        string fax
+        text homepage_url
+    }
+
+    CATALOG_CATEGORIES["[catalog] categories"] {
+        int category_id PK
+        string category_name
+        text description
+        bytes picture
+    }
+
+    CATALOG_PRODUCTS["[catalog] products"] {
+        int product_id PK
+        string product_name
+        int supplier_id FK
+        int category_id FK
+        string quantity_per_unit
+        numeric unit_price
+        smallint units_in_stock
+        smallint units_on_order
+        smallint reorder_level
+        bool is_discontinued
+    }
+
+    CRM_CUSTOMERS["[crm] customers"] {
+        string customer_id PK
+        string company_name
+        string contact_name
+        string contact_title
+        string address
+        string city
+        string region
+        string postal_code
+        string country
+        string phone
+        string fax
+        text homepage_url
+    }

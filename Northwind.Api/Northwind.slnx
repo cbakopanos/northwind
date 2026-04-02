@@ -1,0 +1,6 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/Northwind.Api/Northwind.Api.csproj"/>
+        <Project Path="src/Northwind.Core/Northwind.Core.csproj"/>
+    </Folder>
+</Solution>

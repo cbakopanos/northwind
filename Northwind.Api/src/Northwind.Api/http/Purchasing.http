@@ -1,0 +1,71 @@
+@baseUrl = http://localhost:5019
+
+### Supplier - Health
+GET {{baseUrl}}/api/purchasing/health
+Accept: application/json
+
+### Supplier - Get All Suppliers
+GET {{baseUrl}}/api/purchasing/suppliers
+Accept: application/json
+
+### Supplier - Get All Suppliers (Page 2)
+GET {{baseUrl}}/api/purchasing/suppliers?page=2
+Accept: application/json
+
+### Supplier - Get All Suppliers (10 per page)
+GET {{baseUrl}}/api/purchasing/suppliers?page=1&pageSize=10
+Accept: application/json
+
+### Supplier - Get Supplier By Id
+GET {{baseUrl}}/api/purchasing/suppliers/1
+Accept: application/json
+
+### Supplier - Create Supplier
+POST {{baseUrl}}/api/purchasing/suppliers
+Content-Type: application/json
+Accept: application/json
+
+{
+  "companyName": "Acme Industrial Partners",
+  "contact": {
+    "contactName": "Alex Cooper",
+    "contactTitle": "Procurement Manager"
+  },
+  "address": {
+    "addressLine": "42 Market Street",
+    "city": "Athens",
+    "region": "Attica",
+    "postalCode": "10552",
+    "country": "Greece"
+  },
+  "communication": {
+    "phone": "+30-210-555-1111",
+    "fax": "+30-210-555-2222",
+    "homepageUrl": "https://acme.example.com"
+  }
+}
+
+### Supplier - Update Supplier
+PUT {{baseUrl}}/api/purchasing/suppliers/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "companyName": "Acme Industrial Partners Updated",
+  "contact": {
+    "contactName": "Alex Cooper",
+    "contactTitle": "Head of Procurement"
+  },
+  "address": {
+    "addressLine": "44 Market Street",
+    "city": "Athens",
+    "region": "Attica",
+    "postalCode": "10552",
+    "country": "Greece"
+  },
+  "communication": {
+    "phone": "+30-210-555-3333",
+    "fax": "+30-210-555-4444",
+    "homepageUrl": "https://acme.example.com"
+  }
+}

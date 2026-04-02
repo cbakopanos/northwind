@@ -1,0 +1,125 @@
+# Northwind Database Reference
+
+## Intro
+
+This document describes the current PostgreSQL database structure used in this repository, based on [database/init.sql](../database/init.sql), with data loaded by [database/seed.sql](../database/seed.sql) through [database/rundb.sh](../database/rundb.sh).
+
+It is a practical inventory of database objects (tables, views, functions, indexes, constraints) and a quick navigation aid for development.
+
+Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
+
+---
+
+## 1) Quick summary
+
+- Engine: PostgreSQL (container image `postgres:17` via [database/rundb.sh](../database/rundb.sh))
+- Bounded-context schemas implemented so far: 3 (`purchasing`, `catalog`, `crm`)
+- Tables: 4
+- Views: 0 (not yet implemented)
+- SQL functions: 0 (not yet implemented)
+- Explicit secondary indexes: 2
+
+> **Work in progress.** The remaining schemas (`sales_ordering`, `fulfillment`, `sales_org`, `reporting`) and their tables, views, functions, and indexes have not been implemented yet.
+
+---
+
+## 2) Tables
+
+## 2.0 Schema layout (implemented)
+
+- `purchasing`: `suppliers`
+- `catalog`: `categories`, `products`
+- `crm`: `customers`
+
+## 2.1 Implemented tables
+
+1. `purchasing.suppliers`
+   - PK: `supplier_id` (identity)
+   - Columns: `company_name`, `contact_name`, `contact_title`, `address`, `city`, `region`, `postal_code`, `country`, `phone`, `fax`, `homepage_url`
+   - Purpose: supplier profile and contacts.
+
+2. `catalog.categories`
+   - PK: `category_id` (identity)
+   - Columns: `category_name`, `description`, `picture` (bytea)
+   - Purpose: product category metadata and optional BMP image.
+
+3. `catalog.products`
+   - PK: `product_id` (identity)
+   - FKs:
+      - `supplier_id -> purchasing.suppliers.supplier_id`
+      - `category_id -> catalog.categories.category_id`
+   - Columns: `product_name`, `quantity_per_unit`, `unit_price`, `units_in_stock`, `units_on_order`, `reorder_level`, `is_discontinued`
+   - Purpose: product catalog and inventory/sellability metadata.
+
+4. `crm.customers`
+   - PK: `customer_id` (varchar(5))
+   - Columns: `company_name`, `contact_name`, `contact_title`, `address`, `city`, `region`, `postal_code`, `country`, `phone`, `fax`, `homepage_url`
+   - Purpose: customer profile and contact/address information.
+
+---
+
+## 3) Views
+
+> Not yet implemented.
+
+---
+
+## 4) Functions (stored procedure equivalents)
+
+> Not yet implemented.
+
+---
+
+## 5) Indexes
+
+## 5.1 Products
+
+- `products_category_id_idx` on `catalog.products(category_id)`
+- `products_supplier_id_idx` on `catalog.products(supplier_id)`
+
+---
+
+## 6) Constraints and data integrity highlights
+
+### Primary keys
+
+- `purchasing.suppliers`: `supplier_id` (identity)
+- `catalog.categories`: `category_id` (identity)
+- `catalog.products`: `product_id` (identity)
+- `crm.customers`: `customer_id` (varchar(5))
+
+### Foreign keys
+
+- `catalog.products.supplier_id` -> `purchasing.suppliers.supplier_id`
+- `catalog.products.category_id` -> `catalog.categories.category_id`
+
+### Check constraints
+
+- `catalog.products`:
+   - `unit_price >= 0` (`ck_products_unit_price`)
+   - `units_in_stock >= 0` (`ck_products_units_in_stock`)
+   - `units_on_order >= 0` (`ck_products_units_on_order`)
+   - `reorder_level >= 0` (`ck_products_reorder_level`)
+
+---
+
+## 7) Naming and migration notes
+
+> **Convention note:** Physical database object names follow `snake_case` for tables, columns, and sequences.
+
+- Physical partitioning by bounded context is implemented using schemas in one database.
+- Physical table and column names use unquoted `snake_case`.
+- Cross-context foreign keys are active where both sides of the relationship are implemented.
+- `database/seed.sql` seeds data using the physical `snake_case` column names matching `init.sql`.
+- `database/seedbmp.sql` updates `catalog.categories.picture` with BMP images as `bytea`.
+
+---
+
+## 8) Operational entry points
+
+- Start and load DB: [database/rundb.sh](../database/rundb.sh)
+- Schema DDL: [database/init.sql](../database/init.sql)
+- Seed data: [database/seed.sql](../database/seed.sql)
+- Run API host: [Northwind.Api/src/Northwind.Api](../Northwind.Api/src/Northwind.Api)
+- API HTTP smoke requests: [Northwind.Api/src/Northwind.Api/http](../Northwind.Api/src/Northwind.Api/http)
+- Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)

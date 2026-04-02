@@ -1,0 +1,6 @@
+# Files and directories excluded from GitHub Copilot context.
+# Copilot will not index or suggest from these paths.
+
+# Design/future documents — not representative of the current implementation.
+# Do not use as reference for code generation or consistency checks.
+docs/design/
