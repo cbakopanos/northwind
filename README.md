@@ -12,7 +12,7 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
 </p>
 
----
+--- 
 
 > **Northwind** is a full-stack reference application — ASP.NET Core Minimal API backend with a Vite + React + TypeScript frontend, backed by PostgreSQL 17, structured around DDD bounded contexts.
 
