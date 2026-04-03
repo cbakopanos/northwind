@@ -12,6 +12,7 @@
 |---|:---:|:---:|:---:|
 | **SOLID** | 8 / 10 | 7 / 10 | **8 / 10** |
 | **DDD** | 6 / 10 | 5 / 10 | **6 / 10** |
+| **Clean Architecture** | 6 / 10 | 6 / 10 | **6 / 10** |
 | **Maintainability** | 7 / 10 | 7 / 10 | **7 / 10** |
 | **Scalability** | 6 / 10 | 6 / 10 | **6 / 10** |
 | **Modularity** | 8 / 10 | 7 / 10 | **8 / 10** |
@@ -87,7 +88,49 @@
 
 ---
 
-## 3. Maintainability
+## 3. Clean Architecture
+
+Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: source code dependencies must always point inward — from infrastructure → application → domain — and the inner layers must never know about outer layers. It prescribes four conceptual rings: Entities, Use Cases, Interface Adapters, and Frameworks & Drivers.
+
+### Backend — 6 / 10
+
+**✅ Strengths**
+
+- **Dependency direction is mostly correct** — `Northwind.Core` (inner) never references `Northwind.Api` (outer). The API project depends on Core, not the reverse.
+- **Repository interfaces as ports** — `ICategoriesRepository`, `ICustomersRepository`, `ISuppliersRepository` act as Clean Architecture ports. Concrete EF implementations in `Infrastructure/` are the adapters. The application layer depends only on the abstraction.
+- **Infrastructure isolation** — `DbContext` classes, entity mappings, and EF-specific code are fully contained in `Infrastructure/` sub-folders. No EF types leak into `Application/` or module-level code.
+- **Framework-agnostic inner contracts** — `IValidatable`, `PagedResult<T>`, `IBaseRepository`, and all DTOs carry zero framework dependencies. They could be extracted and tested without ASP.NET Core or EF.
+- **`IModule` as an interface adapter** — Each module's `MapEndpoints` acts as the Interface Adapter layer, translating HTTP concerns (routes, status codes, filters) into calls to application-layer repository interfaces.
+
+**⚠️ Concerns**
+
+- **No Use Case layer** — Clean Architecture prescribes explicit Use Case / Interactor classes that encapsulate application business rules independently of delivery mechanism. Here, all application logic (orchestration, mapping, error handling) is inlined as endpoint handler lambdas directly inside each module's `MapEndpoints`. This merges the Interface Adapter and Use Case layers into one, making logic harder to test in isolation and harder to reuse across delivery mechanisms (e.g., a CLI, a message consumer).
+- **`IModule` interface leaks framework types** — `IModule.RegisterServices` takes `IServiceCollection` and `MapEndpoints` returns `IEndpointRouteBuilder` — both ASP.NET Core types. A truly clean inner boundary would express module contracts in terms of framework-agnostic abstractions, with ASP.NET specifics confined to the outermost layer.
+- **`ValidationFilter<T>` and `HandlingLogFilter` live in `Shared/Abstractions`** — These are ASP.NET Core `IEndpointFilter` implementations (framework-specific). Placing them in `Abstractions/` (conceptually an inner layer) blurs the boundary. They belong in an outer adapter layer.
+- **`BaseRepository<T>` depends on `DbContext`** — The abstract base in `Shared/Infrastructure` directly couples to EF's `DbContext`. This is pragmatic and contained, but it means the infrastructure base class cannot be swapped for a non-EF implementation without changing the shared base.
+- **`CatalogDbContext` maps `SupplierEntity`** — As noted in DDD, the Catalog infrastructure layer directly maps a Purchasing entity. In Clean Architecture terms, this is an outer-layer (Infrastructure) concern that reaches across module boundaries, violating the principle that adapters should only reference their own module's application layer.
+- **No test project** — Clean Architecture's primary motivation is testability of inner layers without infrastructure. The `tests/` folder exists but is empty (`.gitkeep` only). The Use Case / application logic is currently untestable in isolation.
+
+---
+
+### Frontend — 6 / 10
+
+**✅ Strengths**
+
+- **API hooks as adapters** — `useCategoryApi`, `useProductApi`, `useCrmApi`, `useSupplierApi` act as interface adapters: they translate HTTP calls into typed domain objects that UI components consume. Components never call `fetch` directly.
+- **Types as entities** — Each feature's `types.ts` defines the domain shape (`CategoryDetails`, `SupplierSummary`, etc.) independently of the API transport layer.
+- **TanStack Query as the framework driver** — Components are not coupled to TanStack Query directly; they consume hook return values. Swapping the data-fetching library would only require changing the hooks, not the components.
+
+**⚠️ Concerns**
+
+- **No explicit use case layer** — There is no layer between UI components and API hooks that encapsulates application logic (e.g., "create a supplier and then navigate to its detail page"). This logic is inlined in form `onSubmit` handlers, mixing interface adapter and use case concerns.
+- **Shared types duplicated** — `PagedResult<T>`, `Address`, `Contact`, and `PhoneNumbers` are redefined in each feature's `types.ts`. In Clean Architecture terms, these are inner-layer (entity-level) types that should be defined once and shared outward.
+- **`ProductForm` crosses feature boundaries** — The product form directly calls `useCategoryApi` from the Catalog feature. This is an outer layer (UI component) bypassing the intended inward-only dependency direction to reach across an adjacent module.
+- **No dependency injection** — There is no DI container on the frontend. API hook dependencies (base URL, auth tokens, etc.) are resolved via module-level constants rather than injected interfaces, making unit testing of hooks harder.
+
+---
+
+## 4. Maintainability
 
 ### Backend — 7 / 10
 
@@ -97,12 +140,12 @@
 - **`file`-scoped route constants** — Route strings are encapsulated inside the module file, invisible to other modules.
 - **`sealed record` DTOs** — Immutability and structural equality are baked in; `sealed` prevents unintended inheritance.
 - **Primary constructor syntax** throughout — idiomatic modern C#.
+- **Contract validation now enforces DB length constraints** — command request validation now checks varchar-aligned limits for names and shared value-object fields (`Contact`, `Address`, `Communication`), returning clean `400` responses instead of relying on DB exceptions.
+- **Global exception handling is enabled** — `AddProblemDetails()` + `UseExceptionHandler()` provide centralized RFC7807-style error responses for unhandled exceptions.
 - **Skeleton modules** for unimplemented domains stub health endpoints and establish the full architecture surface without blocking delivery.
 
 **⚠️ Concerns**
 
-- **No global exception handling** — There is no `UseExceptionHandler` or `IProblemDetailsService`. Unhandled exceptions will leak stack traces in Development and return empty `500`s in Production.
-- **Validation does not enforce DB-level constraints** — Name fields are validated only for non-empty. The database enforces `varchar(X)` max lengths, but the API will accept strings exceeding those limits, causing opaque `500` errors instead of a `400`.
 - **`SupplierMappings` is empty dead code** — The file exists with no members and unused `using` directives. It should be removed or completed.
 - **Double-logging on health checks** — `BaseRepository.GetCountAsync` logs the count fetch, then the concrete override also logs, producing duplicate log entries per health check call.
 - **Request-timing middleware inlined in `Program.cs`** — The stopwatch lambda is harder to test and reuse. It should be extracted to a proper `IMiddleware` or extension method.
@@ -127,7 +170,7 @@
 
 ---
 
-## 4. Scalability
+## 5. Scalability
 
 ### Backend — 6 / 10
 
@@ -164,7 +207,7 @@
 
 ---
 
-## 5. Modularity
+## 6. Modularity
 
 ### Backend — 8 / 10
 
@@ -198,7 +241,7 @@
 
 ---
 
-## 6. Performance
+## 7. Performance
 
 ### Backend — 7 / 10
 
@@ -228,30 +271,28 @@
 
 ---
 
-## 7. Key Issues (Priority Order)
+## 8. Key Issues (Priority Order)
 
 | # | Priority | Issue | Location |
 |---|---|---|---|
-| 1 | 🔴 High | No global exception handling — unhandled exceptions return blank `500`s | `Program.cs` |
-| 2 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
-| 3 | 🟠 Medium | Validation does not enforce DB-level max lengths — oversized strings cause `500`s | All command DTOs |
-| 4 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
-| 5 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
-| 6 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
-| 7 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
-| 8 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
-| 9 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
-| 10 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
-| 11 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
-| 12 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
+| 1 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
+| 2 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
+| 3 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
+| 4 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
+| 5 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
+| 6 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
+| 7 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
+| 8 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
+| 9 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
+| 10 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
 
 ---
 
-## 8. What Is Done Well
+## 9. What Is Done Well
 
 - **Reflection-based module auto-discovery** is elegant — `Program.cs` and `CoreComposition.cs` never need to change when a new domain is added.
 - **`file`-scoped route constants** per module prevent global namespace pollution and route string drift.
-- **`IValidatable<T>` + `ValidationFilter<T>`** pipeline is clean, framework-agnostic, and keeps validation logic in the request objects themselves.
+- **`IValidatable` + `ValidationFilter<T>`** pipeline is clean, framework-agnostic, and keeps validation logic in request contracts and shared value objects.
 - **`sealed record` DTOs** with primary constructors — immutable, structurally comparable, modern C#.
 - **Skeleton modules** for unimplemented domains establish the full architecture surface from day one without blocking delivery.
 - **EF SQL projections** via static expression fields avoid over-fetching entity graphs.

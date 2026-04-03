@@ -77,6 +77,7 @@ docker --version         # any recent version
 |---|:---:|:---:|:---:|
 | SOLID | 8 / 10 | 7 / 10 | **8 / 10** |
 | DDD | 6 / 10 | 5 / 10 | **6 / 10** |
+| Clean Architecture | 6 / 10 | 6 / 10 | **6 / 10** |
 | Maintainability | 7 / 10 | 7 / 10 | **7 / 10** |
 | Scalability | 6 / 10 | 6 / 10 | **6 / 10** |
 | Modularity | 8 / 10 | 7 / 10 | **8 / 10** |

@@ -12,11 +12,14 @@ builder.Logging.AddSimpleConsole(options =>
 });
 
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
 builder.Services.AddCoreModules(builder.Configuration);
 
 var app = builder.Build();
 
 app.Logger.LogInformation("Starting Northwind API on environment {EnvironmentName}", app.Environment.EnvironmentName);
+
+app.UseExceptionHandler();
 
 app.Use(async (context, next) =>
 {
