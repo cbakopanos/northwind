@@ -141,11 +141,11 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 - **`sealed record` DTOs** — Immutability and structural equality are baked in; `sealed` prevents unintended inheritance.
 - **Primary constructor syntax** throughout — idiomatic modern C#.
 - **Contract validation now enforces DB length constraints** — command request validation now checks varchar-aligned limits for names and shared value-object fields (`Contact`, `Address`, `Communication`), returning clean `400` responses instead of relying on DB exceptions.
+- **Global exception handling is enabled** — `AddProblemDetails()` + `UseExceptionHandler()` provide centralized RFC7807-style error responses for unhandled exceptions.
 - **Skeleton modules** for unimplemented domains stub health endpoints and establish the full architecture surface without blocking delivery.
 
 **⚠️ Concerns**
 
-- **No global exception handling** — There is no `UseExceptionHandler` or `IProblemDetailsService`. Unhandled exceptions will leak stack traces in Development and return empty `500`s in Production.
 - **`SupplierMappings` is empty dead code** — The file exists with no members and unused `using` directives. It should be removed or completed.
 - **Double-logging on health checks** — `BaseRepository.GetCountAsync` logs the count fetch, then the concrete override also logs, producing duplicate log entries per health check call.
 - **Request-timing middleware inlined in `Program.cs`** — The stopwatch lambda is harder to test and reuse. It should be extracted to a proper `IMiddleware` or extension method.
@@ -275,17 +275,16 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 
 | # | Priority | Issue | Location |
 |---|---|---|---|
-| 1 | 🔴 High | No global exception handling — unhandled exceptions return blank `500`s | `Program.cs` |
-| 2 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
-| 3 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
-| 4 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
-| 5 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
-| 6 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
-| 7 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
-| 8 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
-| 9 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
-| 10 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
-| 11 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
+| 1 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
+| 2 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
+| 3 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
+| 4 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
+| 5 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
+| 6 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
+| 7 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
+| 8 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
+| 9 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
+| 10 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
 
 ---
 
