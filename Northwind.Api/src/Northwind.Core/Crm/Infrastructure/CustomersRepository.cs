@@ -19,7 +19,8 @@ public sealed class CustomersRepository(
 
         var customers = await dbContext.Customers
             .AsNoTracking()
-            .OrderByDescending(x => x.CustomerId)
+            .OrderBy(x => x.CreatedAt)
+            .ThenByDescending(x => x.CustomerId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

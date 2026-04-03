@@ -107,6 +107,7 @@ CREATE TABLE crm.customers (
     country varchar(15),
     phone varchar(24),
     fax varchar(24),
+    created_at timestamptz NOT NULL DEFAULT now(),
     homepage_url text
 );
 
