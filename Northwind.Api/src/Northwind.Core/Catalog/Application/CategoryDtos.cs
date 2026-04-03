@@ -22,6 +22,8 @@ public sealed record CategoryRequest(
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(CategoryName))
             errors.Add("CategoryName is required.");
+        else if (CategoryName.Length > 15)
+            errors.Add("CategoryName cannot exceed 15 characters.");
         return errors;
     }
 }

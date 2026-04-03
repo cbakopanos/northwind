@@ -26,6 +26,11 @@ public sealed record CustomerRequest(
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(CompanyName))
             errors.Add("CompanyName is required.");
+        else if (CompanyName.Length > 40)
+            errors.Add("CompanyName cannot exceed 40 characters.");
+        errors.AddRange(Contact.Validate());
+        errors.AddRange(Address.Validate());
+        errors.AddRange(Communication.Validate());
         return errors;
     }
 }
