@@ -28,9 +28,12 @@ public sealed record SupplierRequest(
             errors.Add("CompanyName is required.");
         else if (CompanyName.Length > 40)
             errors.Add("CompanyName cannot exceed 40 characters.");
-        errors.AddRange(Contact.Validate());
-        errors.AddRange(Address.Validate());
-        errors.AddRange(Communication.Validate());
+        if (Contact is not null)
+            errors.AddRange(Contact.Validate());
+        if (Address is not null)
+            errors.AddRange(Address.Validate());
+        if (Communication is not null)
+            errors.AddRange(Communication.Validate());
         return errors;
     }
 }
