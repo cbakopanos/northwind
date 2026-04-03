@@ -3,7 +3,7 @@ namespace Northwind.Crm.Domain;
 public sealed class Customer
 {
     Customer(
-        CustomerId id,
+        CustomerId? id,
         CompanyName companyName,
         CustomerContact contact,
         CustomerAddress address,
@@ -16,14 +16,13 @@ public sealed class Customer
         Communication = communication;
     }
 
-    public CustomerId Id { get; }
+    public CustomerId? Id { get; private set; }
     public CompanyName CompanyName { get; private set; }
     public CustomerContact Contact { get; private set; }
     public CustomerAddress Address { get; private set; }
     public CustomerCommunication Communication { get; private set; }
 
     public static Customer Create(
-        CustomerId id,
         string companyName,
         string? contactName,
         string? contactTitle,
@@ -43,7 +42,7 @@ public sealed class Customer
             throw new DomainValidationException(errors);
 
         return new Customer(
-            id,
+            null,
             CompanyName.Create(companyName),
             CustomerContact.Create(contactName, contactTitle),
             CustomerAddress.Create(addressLine, city, region, postalCode, country),
@@ -69,6 +68,14 @@ public sealed class Customer
             CustomerContact.FromPersistence(contactName, contactTitle),
             CustomerAddress.FromPersistence(addressLine, city, region, postalCode, country),
             CustomerCommunication.FromPersistence(phone, fax, homepageUrl));
+
+    public void AssignId(CustomerId id)
+    {
+        if (Id is not null)
+            throw new InvalidOperationException("Customer id is already assigned.");
+
+        Id = id;
+    }
 
     public void Update(
         string companyName,
@@ -118,9 +125,6 @@ public sealed class Customer
 
 public sealed record CustomerId
 {
-    const string AllowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const int Length = 5;
-
     CustomerId(string value) => Value = value;
 
     public string Value { get; }
@@ -153,15 +157,6 @@ public sealed record CustomerId
             throw new DomainValidationException(errors);
 
         return new CustomerId(value.Trim().ToUpperInvariant());
-    }
-
-    public static CustomerId Generate()
-    {
-        var value = new string(Enumerable.Range(0, Length)
-            .Select(_ => AllowedCharacters[Random.Shared.Next(AllowedCharacters.Length)])
-            .ToArray());
-
-        return Create(value);
     }
 
     public static CustomerId FromPersistence(string value) => new(value);

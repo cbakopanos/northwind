@@ -52,57 +52,66 @@ public sealed class CustomersRepository(
         return customer is null ? null : ToDomain(customer);
     }
 
-    public Task<bool> ExistsAsync(CustomerId customerId, CancellationToken cancellationToken)
+    public async Task<CustomerId> AddAsync(Customer customer, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Checking if customer {CustomerId} exists", customerId.Value);
-        return dbContext.Customers.AnyAsync(x => x.CustomerId == customerId.Value, cancellationToken);
-    }
+        logger.LogInformation("Creating customer");
 
-    public async Task AddAsync(Customer customer, CancellationToken cancellationToken)
-    {
-        logger.LogInformation("Creating customer with CustomerId {CustomerId}", customer.Id.Value);
-
-        var entity = ToEntity(customer, new CustomerEntity { CustomerId = customer.Id.Value });
+        var entity = ToEntity(customer, new CustomerEntity());
         dbContext.Customers.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Created customer with CustomerId {CustomerId}", customer.Id.Value);
+        if (string.IsNullOrWhiteSpace(entity.CustomerId))
+            throw new InvalidOperationException("Database did not generate customer id.");
+
+        var id = CustomerId.FromPersistence(entity.CustomerId);
+        customer.AssignId(id);
+
+        logger.LogInformation("Created customer with CustomerId {CustomerId}", id.Value);
+        return id;
     }
 
     public async Task<bool> UpdateAsync(Customer customer,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Updating customer {CustomerId}", customer.Id.Value);
+        var customerId = customer.Id?.Value ?? throw new InvalidOperationException("Customer id is not assigned.");
+
+        logger.LogInformation("Updating customer {CustomerId}", customerId);
 
         var entity = await dbContext.Customers
-            .SingleOrDefaultAsync(x => x.CustomerId == customer.Id.Value, cancellationToken);
+            .SingleOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);
 
         if (entity is null)
         {
-            logger.LogInformation("Customer {CustomerId} was not found for update", customer.Id.Value);
+            logger.LogInformation("Customer {CustomerId} was not found for update", customerId);
             return false;
         }
 
         ToEntity(customer, entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Updated customer {CustomerId}", customer.Id.Value);
+        logger.LogInformation("Updated customer {CustomerId}", customerId);
         return true;
     }
 
-    static Customer ToDomain(CustomerEntity entity) => Customer.Rehydrate(
-        entity.CustomerId,
-        entity.CompanyName,
-        entity.ContactName,
-        entity.ContactTitle,
-        entity.Address,
-        entity.City,
-        entity.Region,
-        entity.PostalCode,
-        entity.Country,
-        entity.Phone,
-        entity.Fax,
-        entity.HomepageUrl);
+    static Customer ToDomain(CustomerEntity entity)
+    {
+        if (string.IsNullOrWhiteSpace(entity.CustomerId))
+            throw new InvalidOperationException("Customer row has null or empty customer_id.");
+
+        return Customer.Rehydrate(
+            entity.CustomerId,
+            entity.CompanyName,
+            entity.ContactName,
+            entity.ContactTitle,
+            entity.Address,
+            entity.City,
+            entity.Region,
+            entity.PostalCode,
+            entity.Country,
+            entity.Phone,
+            entity.Fax,
+            entity.HomepageUrl);
+    }
 
     static CustomerEntity ToEntity(Customer customer, CustomerEntity entity)
     {

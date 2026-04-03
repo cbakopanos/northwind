@@ -23,15 +23,18 @@ public sealed record CustomerRequest(
 
 public static class CustomerDtoMappings
 {
+    static string GetPersistedCustomerId(Customer customer) =>
+        customer.Id?.Value ?? throw new InvalidOperationException("Customer id is not assigned.");
+
     public static CustomerSummaryDto ToSummaryDto(this Customer customer) => new(
-        customer.Id.Value,
+        GetPersistedCustomerId(customer),
         customer.CompanyName.Value,
         new Contact(
             customer.Contact.ContactName,
             customer.Contact.ContactTitle));
 
     public static CustomerDetailsDto ToDetailsDto(this Customer customer) => new(
-        customer.Id.Value,
+        GetPersistedCustomerId(customer),
         customer.CompanyName.Value,
         new Contact(
             customer.Contact.ContactName,

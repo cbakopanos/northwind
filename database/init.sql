@@ -60,8 +60,43 @@ CREATE INDEX products_supplier_id_idx
 
 CREATE SCHEMA crm;
 
+CREATE OR REPLACE FUNCTION crm.next_customer_id()
+RETURNS varchar(5)
+LANGUAGE plpgsql
+VOLATILE
+AS $$
+DECLARE
+    alphabet constant text := 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    generated text;
+    i integer;
+    attempts integer := 0;
+BEGIN
+    LOOP
+        attempts := attempts + 1;
+        generated := '';
+
+        FOR i IN 1..5 LOOP
+            generated := generated || substr(alphabet, floor(random() * length(alphabet))::integer + 1, 1);
+        END LOOP;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM crm.customers c
+            WHERE c.customer_id = generated
+        ) THEN
+            RETURN generated::varchar(5);
+        END IF;
+
+        IF attempts >= 100 THEN
+            RAISE EXCEPTION 'Unable to generate unique customer id after % attempts', attempts;
+        END IF;
+    END LOOP;
+
+END;
+$$;
+
 CREATE TABLE crm.customers (
-    customer_id varchar(5) PRIMARY KEY,
+    customer_id varchar(5) PRIMARY KEY DEFAULT crm.next_customer_id(),
     company_name varchar(40) NOT NULL,
     contact_name varchar(30),
     contact_title varchar(30),

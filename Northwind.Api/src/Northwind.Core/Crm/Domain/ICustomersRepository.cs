@@ -11,9 +11,7 @@ public interface ICustomersRepository
 
     Task<Customer?> GetByIdAsync(CustomerId customerId, CancellationToken cancellationToken = default);
 
-    Task<bool> ExistsAsync(CustomerId customerId, CancellationToken cancellationToken = default);
-
-    Task AddAsync(Customer customer, CancellationToken cancellationToken = default);
+    Task<CustomerId> AddAsync(Customer customer, CancellationToken cancellationToken = default);
 
     Task<bool> UpdateAsync(Customer customer, CancellationToken cancellationToken = default);
 }
