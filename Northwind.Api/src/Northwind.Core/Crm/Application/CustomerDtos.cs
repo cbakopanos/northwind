@@ -1,4 +1,4 @@
-using Northwind.Shared.Abstractions;
+using Northwind.Crm.Domain;
 using Northwind.Shared.Application;
 
 namespace Northwind.Crm.Application;
@@ -19,22 +19,32 @@ public sealed record CustomerRequest(
     string CompanyName,
     Contact? Contact,
     Address? Address,
-    Communication? Communication) : IValidatable
+    Communication? Communication);
+
+public static class CustomerDtoMappings
 {
-    public IReadOnlyList<string> Validate()
-    {
-        var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(CompanyName))
-            errors.Add("CompanyName is required.");
-        else if (CompanyName.Length > 40)
-            errors.Add("CompanyName cannot exceed 40 characters.");
-        if (Contact is not null)
-            errors.AddRange(Contact.Validate());
-        if (Address is not null)
-            errors.AddRange(Address.Validate());
-        if (Communication is not null)
-            errors.AddRange(Communication.Validate());
-        return errors;
-    }
+    public static CustomerSummaryDto ToSummaryDto(this Customer customer) => new(
+        customer.Id.Value,
+        customer.CompanyName.Value,
+        new Contact(
+            customer.Contact.ContactName,
+            customer.Contact.ContactTitle));
+
+    public static CustomerDetailsDto ToDetailsDto(this Customer customer) => new(
+        customer.Id.Value,
+        customer.CompanyName.Value,
+        new Contact(
+            customer.Contact.ContactName,
+            customer.Contact.ContactTitle),
+        new Address(
+            customer.Address.AddressLine,
+            customer.Address.City,
+            customer.Address.Region,
+            customer.Address.PostalCode,
+            customer.Address.Country),
+        new Communication(
+            customer.Communication.Phone,
+            customer.Communication.Fax,
+            customer.Communication.HomepageUrl));
 }
 

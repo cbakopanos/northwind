@@ -1,10 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Northwind.Shared.Abstractions;
 using Northwind.Shared.Infrastructure;
-using Northwind.Crm.Application;
-using System.Linq.Expressions;
-using Northwind.Shared.Application;
+using Northwind.Crm.Domain;
+using Northwind.Shared.Abstractions;
 
 namespace Northwind.Crm.Infrastructure;
 
@@ -12,7 +10,7 @@ public sealed class CustomersRepository(
     CrmDbContext dbContext,
     ILogger<CustomersRepository> logger) : BaseRepository<CustomerEntity>(dbContext, logger), ICustomersRepository
 {
-    public async Task<PagedResult<CustomerSummaryDto>> GetAllAsync(int page, int pageSize,
+    public async Task<PagedResult<Customer>> GetAllAsync(int page, int pageSize,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Fetching customers from database (page {Page}, pageSize {PageSize})", page, pageSize);
@@ -24,132 +22,101 @@ public sealed class CustomersRepository(
             .OrderByDescending(x => x.CustomerId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(ToSummaryDto)
             .ToListAsync(cancellationToken);
+
+        var domainCustomers = customers
+            .Select(ToDomain)
+            .ToList();
 
         logger.LogInformation("Fetched {CustomerCount} of {TotalCount} customers from database", customers.Count,
             totalCount);
 
-        return new PagedResult<CustomerSummaryDto>(customers, page, pageSize, totalCount);
+        return new PagedResult<Customer>(domainCustomers, page, pageSize, totalCount);
     }
 
-    public async Task<CustomerDetailsDto?> GetByIdAsync(string customerId, CancellationToken cancellationToken)
+    public async Task<Customer?> GetByIdAsync(CustomerId customerId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Fetching customer {CustomerId} from database", customerId);
+        logger.LogInformation("Fetching customer {CustomerId} from database", customerId.Value);
 
         var customer = await dbContext.Customers
             .AsNoTracking()
-            .Where(x => x.CustomerId == customerId)
-            .Select(ToDetailsDto)
+            .Where(x => x.CustomerId == customerId.Value)
             .SingleOrDefaultAsync(cancellationToken);
 
         logger.LogInformation(
             customer is null
                 ? "Customer {CustomerId} was not found"
                 : "Customer {CustomerId} was found",
-            customerId);
+            customerId.Value);
 
-        return customer;
+        return customer is null ? null : ToDomain(customer);
     }
 
-    public async Task<string> CreateAsync(CustomerRequest request, CancellationToken cancellationToken)
+    public Task<bool> ExistsAsync(CustomerId customerId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Creating customer with CompanyName {CompanyName}", request.CompanyName);
-
-        // Generate a simple 5-char ID (uppercase alphanumeric) and ensure uniqueness
-        string genId()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var rng = new Random();
-            return new string(Enumerable.Range(0, 5).Select(_ => chars[rng.Next(chars.Length)]).ToArray());
-        }
-
-        string customerId;
-        CustomerEntity entity;
-
-        do
-        {
-            customerId = genId();
-            entity = new CustomerEntity { CustomerId = customerId };
-            ToCustomerEntity(entity, request);
-            dbContext.Customers.Add(entity);
-            try
-            {
-                await dbContext.SaveChangesAsync(cancellationToken);
-                break;
-            }
-            catch (DbUpdateException)
-            {
-                // assume conflict -> try again
-                dbContext.Entry(entity).State = EntityState.Detached;
-            }
-        } while (true);
-
-        logger.LogInformation("Created customer with CustomerId {CustomerId}", customerId);
-
-        return customerId;
+        logger.LogInformation("Checking if customer {CustomerId} exists", customerId.Value);
+        return dbContext.Customers.AnyAsync(x => x.CustomerId == customerId.Value, cancellationToken);
     }
 
-    public async Task<bool> UpdateAsync(string customerId, CustomerRequest request,
+    public async Task AddAsync(Customer customer, CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Creating customer with CustomerId {CustomerId}", customer.Id.Value);
+
+        var entity = ToEntity(customer, new CustomerEntity { CustomerId = customer.Id.Value });
+        dbContext.Customers.Add(entity);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Created customer with CustomerId {CustomerId}", customer.Id.Value);
+    }
+
+    public async Task<bool> UpdateAsync(Customer customer,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Updating customer {CustomerId}", customerId);
+        logger.LogInformation("Updating customer {CustomerId}", customer.Id.Value);
 
         var entity = await dbContext.Customers
-            .SingleOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);
+            .SingleOrDefaultAsync(x => x.CustomerId == customer.Id.Value, cancellationToken);
 
         if (entity is null)
         {
-            logger.LogInformation("Customer {CustomerId} was not found for update", customerId);
+            logger.LogInformation("Customer {CustomerId} was not found for update", customer.Id.Value);
             return false;
         }
 
-        ToCustomerEntity(entity, request);
+        ToEntity(customer, entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Updated customer {CustomerId}", customerId);
+        logger.LogInformation("Updated customer {CustomerId}", customer.Id.Value);
         return true;
     }
 
-    static readonly Expression<Func<CustomerEntity, CustomerSummaryDto>> ToSummaryDto =
-        x => new CustomerSummaryDto(
-            x.CustomerId,
-            x.CompanyName,
-            new Contact(
-                x.ContactName,
-                x.ContactTitle));
+    static Customer ToDomain(CustomerEntity entity) => Customer.Rehydrate(
+        entity.CustomerId,
+        entity.CompanyName,
+        entity.ContactName,
+        entity.ContactTitle,
+        entity.Address,
+        entity.City,
+        entity.Region,
+        entity.PostalCode,
+        entity.Country,
+        entity.Phone,
+        entity.Fax,
+        entity.HomepageUrl);
 
-    static readonly Expression<Func<CustomerEntity, CustomerDetailsDto>> ToDetailsDto =
-        x => new CustomerDetailsDto(
-            x.CustomerId,
-            x.CompanyName,
-            new Contact(
-                x.ContactName,
-                x.ContactTitle),
-            new Address(
-                x.Address,
-                x.City,
-                x.Region,
-                x.PostalCode,
-                x.Country),
-            new Communication(
-                x.Phone,
-                x.Fax,
-                x.HomepageUrl));
-
-    static CustomerEntity ToCustomerEntity(CustomerEntity entity, CustomerRequest request)
+    static CustomerEntity ToEntity(Customer customer, CustomerEntity entity)
     {
-        entity.CompanyName = request.CompanyName.Trim();
-        entity.ContactName = request.Contact?.ContactName;
-        entity.ContactTitle = request.Contact?.ContactTitle;
-        entity.Address = request.Address?.AddressLine;
-        entity.City = request.Address?.City;
-        entity.Region = request.Address?.Region;
-        entity.PostalCode = request.Address?.PostalCode;
-        entity.Country = request.Address?.Country;
-        entity.Phone = request.Communication?.Phone;
-        entity.Fax = request.Communication?.Fax;
-        entity.HomepageUrl = request.Communication?.HomepageUrl;
+        entity.CompanyName = customer.CompanyName.Value;
+        entity.ContactName = customer.Contact.ContactName;
+        entity.ContactTitle = customer.Contact.ContactTitle;
+        entity.Address = customer.Address.AddressLine;
+        entity.City = customer.Address.City;
+        entity.Region = customer.Address.Region;
+        entity.PostalCode = customer.Address.PostalCode;
+        entity.Country = customer.Address.Country;
+        entity.Phone = customer.Communication.Phone;
+        entity.Fax = customer.Communication.Fax;
+        entity.HomepageUrl = customer.Communication.HomepageUrl;
 
         return entity;
     }
