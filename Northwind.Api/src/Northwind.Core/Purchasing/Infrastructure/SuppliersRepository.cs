@@ -21,7 +21,7 @@ public sealed class SuppliersRepository(
 
         var suppliers = await dbContext.Suppliers
             .AsNoTracking()
-            .OrderByDescending(x => x.SupplierId)
+            .OrderBy(x => x.CreatedAt)            
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(ToSummaryDto)

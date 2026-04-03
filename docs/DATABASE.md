@@ -35,12 +35,12 @@ Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
 
 1. `purchasing.suppliers`
    - PK: `supplier_id` (identity)
-   - Columns: `company_name`, `contact_name`, `contact_title`, `address`, `city`, `region`, `postal_code`, `country`, `phone`, `fax`, `homepage_url`
+   - Columns: `company_name`, `contact_name`, `contact_title`, `address`, `city`, `region`, `postal_code`, `country`, `phone`, `fax`, `created_at`, `homepage_url`
    - Purpose: supplier profile and contacts.
 
 2. `catalog.categories`
    - PK: `category_id` (identity)
-   - Columns: `category_name`, `description`, `picture` (bytea)
+   - Columns: `category_name`, `description`, `created_at`, `picture` (bytea)
    - Purpose: product category metadata and optional BMP image.
 
 3. `catalog.products`
@@ -48,7 +48,7 @@ Visual ER diagram: [DATABASE.mmd](DATABASE.mmd)
    - FKs:
       - `supplier_id -> purchasing.suppliers.supplier_id`
       - `category_id -> catalog.categories.category_id`
-   - Columns: `product_name`, `quantity_per_unit`, `unit_price`, `units_in_stock`, `units_on_order`, `reorder_level`, `is_discontinued`
+   - Columns: `product_name`, `quantity_per_unit`, `unit_price`, `units_in_stock`, `units_on_order`, `reorder_level`, `created_at`, `is_discontinued`
    - Purpose: product catalog and inventory/sellability metadata.
 
 4. `crm.customers`

@@ -43,5 +43,7 @@ public sealed class SupplierEntity
 
     [Column("fax")] [MaxLength(24)] public string? Fax { get; set; }
 
+    [Column("created_at")] public DateTimeOffset CreatedAt { get; set; }
+
     [Column("homepage_url")] public string? HomepageUrl { get; set; }
 }

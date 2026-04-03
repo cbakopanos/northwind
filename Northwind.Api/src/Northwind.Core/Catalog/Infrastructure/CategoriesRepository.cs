@@ -16,7 +16,7 @@ public sealed class CategoriesRepository(
 
         var categories = await dbContext.Categories
             .AsNoTracking()
-            .OrderByDescending(x => x.CategoryId)
+            .OrderBy(x => x.CreatedAt)            
             .Select(ToSummaryDto)
             .ToListAsync(cancellationToken);
 
