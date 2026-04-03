@@ -140,12 +140,12 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 - **`file`-scoped route constants** — Route strings are encapsulated inside the module file, invisible to other modules.
 - **`sealed record` DTOs** — Immutability and structural equality are baked in; `sealed` prevents unintended inheritance.
 - **Primary constructor syntax** throughout — idiomatic modern C#.
+- **Contract validation now enforces DB length constraints** — command request validation now checks varchar-aligned limits for names and shared value-object fields (`Contact`, `Address`, `Communication`), returning clean `400` responses instead of relying on DB exceptions.
 - **Skeleton modules** for unimplemented domains stub health endpoints and establish the full architecture surface without blocking delivery.
 
 **⚠️ Concerns**
 
 - **No global exception handling** — There is no `UseExceptionHandler` or `IProblemDetailsService`. Unhandled exceptions will leak stack traces in Development and return empty `500`s in Production.
-- **Validation does not enforce DB-level constraints** — Name fields are validated only for non-empty. The database enforces `varchar(X)` max lengths, but the API will accept strings exceeding those limits, causing opaque `500` errors instead of a `400`.
 - **`SupplierMappings` is empty dead code** — The file exists with no members and unused `using` directives. It should be removed or completed.
 - **Double-logging on health checks** — `BaseRepository.GetCountAsync` logs the count fetch, then the concrete override also logs, producing duplicate log entries per health check call.
 - **Request-timing middleware inlined in `Program.cs`** — The stopwatch lambda is harder to test and reuse. It should be extracted to a proper `IMiddleware` or extension method.
@@ -277,16 +277,15 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 |---|---|---|---|
 | 1 | 🔴 High | No global exception handling — unhandled exceptions return blank `500`s | `Program.cs` |
 | 2 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
-| 3 | 🟠 Medium | Validation does not enforce DB-level max lengths — oversized strings cause `500`s | All command DTOs |
-| 4 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
-| 5 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
-| 6 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
-| 7 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
-| 8 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
-| 9 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
-| 10 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
-| 11 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
-| 12 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
+| 3 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
+| 4 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
+| 5 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
+| 6 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
+| 7 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
+| 8 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
+| 9 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
+| 10 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
+| 11 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
 
 ---
 
@@ -294,7 +293,7 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 
 - **Reflection-based module auto-discovery** is elegant — `Program.cs` and `CoreComposition.cs` never need to change when a new domain is added.
 - **`file`-scoped route constants** per module prevent global namespace pollution and route string drift.
-- **`IValidatable<T>` + `ValidationFilter<T>`** pipeline is clean, framework-agnostic, and keeps validation logic in the request objects themselves.
+- **`IValidatable` + `ValidationFilter<T>`** pipeline is clean, framework-agnostic, and keeps validation logic in request contracts and shared value objects.
 - **`sealed record` DTOs** with primary constructors — immutable, structurally comparable, modern C#.
 - **Skeleton modules** for unimplemented domains establish the full architecture surface from day one without blocking delivery.
 - **EF SQL projections** via static expression fields avoid over-fetching entity graphs.
