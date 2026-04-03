@@ -23,6 +23,8 @@ public sealed class CategoryEntity
 
     [Column("description")] public string? Description { get; set; }
 
+    [Column("created_at")] public DateTimeOffset CreatedAt { get; set; }
+
     [Column("picture")] public byte[]? Picture { get; set; }
 }
 
@@ -52,6 +54,8 @@ public sealed class ProductEntity
 
     [Column("reorder_level")] public short ReorderLevel { get; set; }
 
+    [Column("created_at")] public DateTimeOffset CreatedAt { get; set; }
+
     [Column("is_discontinued")] public bool IsDiscontinued { get; set; }
 
     [ForeignKey(nameof(CategoryId))] public CategoryEntity? Category { get; set; }
@@ -75,5 +79,7 @@ public sealed class SupplierEntity
     [Column("contact_title")]
     [MaxLength(30)]
     public string? ContactTitle { get; set; }
+
+    [Column("created_at")] public DateTimeOffset CreatedAt { get; set; }
     
 }

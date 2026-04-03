@@ -7,6 +7,14 @@ namespace Northwind.Crm.Infrastructure;
 public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options) : DbContext(options)
 {
     public DbSet<CustomerEntity> Customers => Set<CustomerEntity>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CustomerEntity>()
+            .Property(x => x.CustomerId)
+            .HasDefaultValueSql("crm.next_customer_id()")
+            .ValueGeneratedOnAdd();
+    }
 }
 
 [Table("customers", Schema = "crm")]
@@ -15,7 +23,7 @@ public sealed class CustomerEntity
     [Key]
     [Column("customer_id")]
     [MaxLength(5)]
-    public string CustomerId { get; init; } = string.Empty;
+    public string? CustomerId { get; set; }
 
     [Column("company_name")]
     [MaxLength(40)]
@@ -57,6 +65,9 @@ public sealed class CustomerEntity
     [Column("fax")]
     [MaxLength(24)]
     public string? Fax { get; set; }
+
+    [Column("created_at")]
+    public DateTimeOffset CreatedAt { get; set; }
 
     [Column("homepage_url")]
     public string? HomepageUrl { get; set; }

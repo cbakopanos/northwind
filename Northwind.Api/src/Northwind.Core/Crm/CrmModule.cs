@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Northwind.Crm.Application;
+using Northwind.Crm.Domain;
 using Northwind.Crm.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -23,15 +24,16 @@ public sealed class CrmModule : IModule
     {
         services.AddDbContext<CrmDbContext>(o => o.UseNpgsql(connectionString));
         services.AddScoped<ICustomersRepository, CustomersRepository>();
+        services.AddScoped<ICustomersService, CustomersService>();
     }
 
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(Routes.Health, async (ICustomersRepository repository, ILogger<CrmModule> logger,
+        endpoints.MapGet(Routes.Health, async (ICustomersService service, ILogger<CrmModule> logger,
                 CancellationToken cancellationToken) =>
             {
                 logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Crm");
-                var count = await repository.GetCountAsync(cancellationToken);
+                var count = await service.GetCountAsync(cancellationToken);
                 return Results.Ok(new { context = "Crm", status = "ok", count });
             })
             .WithName("GetCrmHealth")
@@ -41,13 +43,13 @@ public sealed class CrmModule : IModule
 
         endpoints.MapGet(
                 Routes.Customers,
-                async (int? page, int? pageSize, ICustomersRepository query, ILogger<CrmModule> logger,
+                async (int? page, int? pageSize, ICustomersService service, ILogger<CrmModule> logger,
                     CancellationToken cancellationToken) =>
                 {
                     var currentPage = page ?? 1;
                     var currentPageSize = Math.Clamp(pageSize ?? 10, 1, 100);
 
-                    var result = await query.GetAllAsync(currentPage, currentPageSize, cancellationToken);
+                    var result = await service.GetAllAsync(currentPage, currentPageSize, cancellationToken);
 
                     logger.LogInformation("Returning {CustomerCount} of {TotalCount} customers", result.Items.Count,
                         result.TotalCount);
@@ -60,10 +62,19 @@ public sealed class CrmModule : IModule
 
         endpoints.MapGet(
                 Routes.CustomerById,
-                async (string customerId, ICustomersRepository query, ILogger<CrmModule> logger,
+                async (string customerId, ICustomersService service, ILogger<CrmModule> logger,
                     CancellationToken cancellationToken) =>
                 {
-                    var customer = await query.GetByIdAsync(customerId, cancellationToken);
+                    CustomerDetailsDto? customer;
+
+                    try
+                    {
+                        customer = await service.GetByIdAsync(customerId, cancellationToken);
+                    }
+                    catch (DomainValidationException ex)
+                    {
+                        return Results.BadRequest(new { errors = ex.Errors });
+                    }
 
                     if (customer is null)
                     {
@@ -81,10 +92,19 @@ public sealed class CrmModule : IModule
 
         endpoints.MapPost(
                 Routes.Customers,
-                async (CustomerRequest request, ICustomersRepository repository,
+                async (CustomerRequest request, ICustomersService service,
                     CancellationToken cancellationToken) =>
                 {
-                    var createdCustomerId = await repository.CreateAsync(request, cancellationToken);
+                    string createdCustomerId;
+
+                    try
+                    {
+                        createdCustomerId = await service.CreateAsync(request, cancellationToken);
+                    }
+                    catch (DomainValidationException ex)
+                    {
+                        return Results.BadRequest(new { errors = ex.Errors });
+                    }
 
                     return Results.Created(
                         $"/api/crm/customers/{createdCustomerId}",
@@ -93,16 +113,24 @@ public sealed class CrmModule : IModule
             .WithName("CreateCustomer")
             .WithTags("Crm")
             .AddEndpointFilter<HandlingLogFilter>()
-            .AddEndpointFilter<ValidationFilter<CustomerRequest>>()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
         endpoints.MapPut(
                 Routes.CustomerById,
-                async (string customerId, CustomerRequest request, ICustomersRepository repository,
+                async (string customerId, CustomerRequest request, ICustomersService service,
                     ILogger<CrmModule> logger, CancellationToken cancellationToken) =>
                 {
-                    var updated = await repository.UpdateAsync(customerId, request, cancellationToken);
+                    bool updated;
+
+                    try
+                    {
+                        updated = await service.UpdateAsync(customerId, request, cancellationToken);
+                    }
+                    catch (DomainValidationException ex)
+                    {
+                        return Results.BadRequest(new { errors = ex.Errors });
+                    }
 
                     if (!updated)
                     {
@@ -115,7 +143,6 @@ public sealed class CrmModule : IModule
             .WithName("UpdateCustomer")
             .WithTags("Crm")
             .AddEndpointFilter<HandlingLogFilter>()
-            .AddEndpointFilter<ValidationFilter<CustomerRequest>>()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

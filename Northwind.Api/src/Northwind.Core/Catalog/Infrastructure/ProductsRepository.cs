@@ -21,7 +21,7 @@ public sealed class ProductsRepository(
         var products = await dbContext.Products
             .AsNoTracking()
             .Include(x => x.Category)
-            .OrderByDescending(x => x.ProductId)
+            .OrderBy(x => x.CreatedAt)            
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(ToSummaryDto)
