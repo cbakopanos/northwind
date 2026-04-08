@@ -1,10 +1,8 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Northwind.Purchasing.Domain;
 using Northwind.Shared.Abstractions;
-using Northwind.Shared.Application;
 using Northwind.Shared.Infrastructure;
-using Northwind.Purchasing.Application;
 
 namespace Northwind.Purchasing.Infrastructure;
 
@@ -12,7 +10,7 @@ public sealed class SuppliersRepository(
     SupplierDbContext dbContext,
     ILogger<SuppliersRepository> logger) : BaseRepository<SupplierEntity>(dbContext, logger), ISuppliersRepository
 {
-    public async Task<PagedResult<SupplierSummaryDto>> GetAllAsync(int page, int pageSize,
+    public async Task<PagedResult<Supplier>> GetAllAsync(int page, int pageSize,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Fetching suppliers from database (page {Page}, pageSize {PageSize})", page, pageSize);
@@ -21,54 +19,62 @@ public sealed class SuppliersRepository(
 
         var suppliers = await dbContext.Suppliers
             .AsNoTracking()
-            .OrderBy(x => x.CreatedAt)            
+            .OrderBy(x => x.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(ToSummaryDto)
             .ToListAsync(cancellationToken);
+
+        var domainSuppliers = suppliers
+            .Select(ToDomain)
+            .ToList();
 
         logger.LogInformation("Fetched {SupplierCount} of {TotalCount} suppliers from database", suppliers.Count,
             totalCount);
 
-        return new PagedResult<SupplierSummaryDto>(suppliers, page, pageSize, totalCount);
+        return new PagedResult<Supplier>(domainSuppliers, page, pageSize, totalCount);
     }
 
-    public async Task<SupplierDetailsDto?> GetByIdAsync(int supplierId, CancellationToken cancellationToken)
+    public async Task<Supplier?> GetByIdAsync(SupplierId supplierId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Fetching supplier {SupplierId} from database", supplierId);
+        logger.LogInformation("Fetching supplier {SupplierId} from database", supplierId.Value);
 
-        var supplier = await dbContext.Suppliers
+        var entity = await dbContext.Suppliers
             .AsNoTracking()
-            .Where(x => x.SupplierId == supplierId)
-            .Select(ToDetailsDto)
+            .Where(x => x.SupplierId == supplierId.Value)
             .SingleOrDefaultAsync(cancellationToken);
 
-        logger.LogInformation(
-            supplier is null
-                ? "Supplier {SupplierId} was not found"
-                : "Supplier {SupplierId} was found",
-            supplierId);
+        if (entity is null)
+        {
+            logger.LogInformation("Supplier {SupplierId} was not found", supplierId.Value);
+            return null;
+        }
 
-        return supplier;
+        logger.LogInformation("Supplier {SupplierId} was found", supplierId.Value);
+        return ToDomain(entity);
     }
 
-    public async Task<int> CreateAsync(SupplierRequest request, CancellationToken cancellationToken)
+    public async Task<SupplierId> AddAsync(Supplier supplier, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Creating supplier with CompanyName {CompanyName}", request.CompanyName);
+        logger.LogInformation("Creating supplier with CompanyName {CompanyName}", supplier.CompanyName.Value);
 
-        var entity = ToSupplierEntity(new SupplierEntity(), request);
+        var entity = ToEntity(supplier, new SupplierEntity());
 
         dbContext.Suppliers.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        var id = SupplierId.FromPersistence(entity.SupplierId);
+        supplier.AssignId(id);
+
         logger.LogInformation("Created supplier with SupplierId {SupplierId}", entity.SupplierId);
 
-        return entity.SupplierId;
+        return id;
     }
 
-    public async Task<bool> UpdateAsync(int supplierId, SupplierRequest request,
+    public async Task<bool> UpdateAsync(Supplier supplier,
         CancellationToken cancellationToken)
     {
+        var supplierId = supplier.Id?.Value ?? throw new InvalidOperationException("Supplier id is not assigned.");
+
         logger.LogInformation("Updating supplier {SupplierId}", supplierId);
 
         var entity = await dbContext.Suppliers
@@ -80,53 +86,42 @@ public sealed class SuppliersRepository(
             return false;
         }
 
-        ToSupplierEntity(entity, request);
+        ToEntity(supplier, entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Updated supplier {SupplierId}", supplierId);
         return true;
     }
-    static readonly Expression<Func<SupplierEntity, SupplierSummaryDto>> ToSummaryDto =
-        x => new SupplierSummaryDto(
-            x.SupplierId,
-            x.CompanyName,
-            new Contact(
-                x.ContactName,
-                x.ContactTitle));
 
-    static readonly Expression<Func<SupplierEntity, SupplierDetailsDto>> ToDetailsDto =
-        x => new SupplierDetailsDto(
-            x.SupplierId,
-            x.CompanyName,
-            new Contact(
-                x.ContactName,
-                x.ContactTitle),
-            new Address(
-                x.Address,
-                x.City,
-                x.Region,
-                x.PostalCode,
-                x.Country),
-            new Communication(
-                x.Phone,
-                x.Fax,
-                x.HomepageUrl));
+    static Supplier ToDomain(SupplierEntity entity) =>
+        Supplier.Rehydrate(
+            entity.SupplierId,
+            entity.CompanyName,
+            entity.ContactName,
+            entity.ContactTitle,
+            entity.Address,
+            entity.City,
+            entity.Region,
+            entity.PostalCode,
+            entity.Country,
+            entity.Phone,
+            entity.Fax,
+            entity.HomepageUrl);
 
-    static SupplierEntity ToSupplierEntity(SupplierEntity entity, SupplierRequest request)
+    static SupplierEntity ToEntity(Supplier supplier, SupplierEntity entity)
     {
-        entity.CompanyName = request.CompanyName.Trim();
-        entity.ContactName = request.Contact?.ContactName;
-        entity.ContactTitle = request.Contact?.ContactTitle;
-        entity.Address = request.Address?.AddressLine;
-        entity.City = request.Address?.City;
-        entity.Region = request.Address?.Region;
-        entity.PostalCode = request.Address?.PostalCode;
-        entity.Country = request.Address?.Country;
-        entity.Phone = request.Communication?.Phone;
-        entity.Fax = request.Communication?.Fax;
-        entity.HomepageUrl = request.Communication?.HomepageUrl;
+        entity.CompanyName = supplier.CompanyName.Value;
+        entity.ContactName = supplier.Contact.ContactName;
+        entity.ContactTitle = supplier.Contact.ContactTitle;
+        entity.Address = supplier.Address.AddressLine;
+        entity.City = supplier.Address.City;
+        entity.Region = supplier.Address.Region;
+        entity.PostalCode = supplier.Address.PostalCode;
+        entity.Country = supplier.Address.Country;
+        entity.Phone = supplier.Communication.Phone;
+        entity.Fax = supplier.Communication.Fax;
+        entity.HomepageUrl = supplier.Communication.HomepageUrl;
 
         return entity;
     }
-
 }

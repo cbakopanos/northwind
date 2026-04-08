@@ -1,7 +1,6 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Northwind.Catalog.Application;
+using Northwind.Catalog.Domain;
 using Northwind.Shared.Abstractions;
 using Northwind.Shared.Infrastructure;
 
@@ -11,7 +10,7 @@ public sealed class ProductsRepository(
     CatalogDbContext dbContext,
     ILogger<ProductsRepository> logger) : BaseRepository<ProductEntity>(dbContext, logger), IProductsRepository
 {
-    public async Task<PagedResult<ProductSummaryDto>> GetAllAsync(int page, int pageSize,
+    public async Task<PagedResult<Product>> GetAllAsync(int page, int pageSize,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Fetching products from database (page {Page}, pageSize {PageSize})", page, pageSize);
@@ -21,57 +20,67 @@ public sealed class ProductsRepository(
         var products = await dbContext.Products
             .AsNoTracking()
             .Include(x => x.Category)
-            .OrderBy(x => x.CreatedAt)            
+            .Include(x => x.Supplier)
+            .OrderBy(x => x.CreatedAt)
+            .ThenBy(x => x.ProductId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(ToSummaryDto)
             .ToListAsync(cancellationToken);
+
+        var domainProducts = products
+            .Select(ToDomain)
+            .ToList();
 
         logger.LogInformation("Fetched {ProductCount} of {TotalCount} products from database", products.Count,
             totalCount);
 
-        return new PagedResult<ProductSummaryDto>(products, page, pageSize, totalCount);
+        return new PagedResult<Product>(domainProducts, page, pageSize, totalCount);
     }
 
-    public async Task<ProductDetailsDto?> GetByIdAsync(int productId, CancellationToken cancellationToken)
+    public async Task<Product?> GetByIdAsync(ProductId productId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Fetching product {ProductId} from database", productId);
+        logger.LogInformation("Fetching product {ProductId} from database", productId.Value);
 
         var entity = await dbContext.Products
             .AsNoTracking()
             .Include(x => x.Category)
             .Include(x => x.Supplier)
-            .Where(x => x.ProductId == productId)
+            .Where(x => x.ProductId == productId.Value)
             .SingleOrDefaultAsync(cancellationToken);
 
         if (entity is null)
         {
-            logger.LogInformation("Product {ProductId} was not found", productId);
+            logger.LogInformation("Product {ProductId} was not found", productId.Value);
             return null;
         }
 
-        logger.LogInformation("Product {ProductId} was found", productId);
+        logger.LogInformation("Product {ProductId} was found", productId.Value);
 
-        return ToDetailsDto(entity);
+        return ToDomain(entity);
     }
 
-    public async Task<int> CreateAsync(ProductRequest request, CancellationToken cancellationToken)
+    public async Task<ProductId> AddAsync(Product product, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Creating product with ProductName {ProductName}", request.ProductName);
+        logger.LogInformation("Creating product with ProductName {ProductName}", product.ProductName.Value);
 
-        var entity = ToProductEntity(new ProductEntity(), request);
+        var entity = ToProductEntity(new ProductEntity(), product);
 
         dbContext.Products.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        var id = ProductId.FromPersistence(entity.ProductId);
+        product.AssignId(id);
+
         logger.LogInformation("Created product with ProductId {ProductId}", entity.ProductId);
 
-        return entity.ProductId;
+        return id;
     }
 
-    public async Task<bool> UpdateAsync(int productId, ProductRequest request,
+    public async Task<bool> UpdateAsync(Product product,
         CancellationToken cancellationToken)
     {
+        var productId = product.Id?.Value ?? throw new InvalidOperationException("Product id is not assigned.");
+
         logger.LogInformation("Updating product {ProductId}", productId);
 
         var entity = await dbContext.Products
@@ -83,91 +92,46 @@ public sealed class ProductsRepository(
             return false;
         }
 
-        ToProductEntity(entity, request);
+        ToProductEntity(entity, product);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Updated product {ProductId}", productId);
         return true;
     }
 
-    public async Task<bool> DiscontinueAsync(int productId, CancellationToken cancellationToken)
+    static Product ToDomain(ProductEntity x)
     {
-        logger.LogInformation("Discontinuing product {ProductId}", productId);
+        var supplierDisplayName = x.Supplier is null
+            ? null
+            : string.Join(", ", new[] { x.Supplier.CompanyName, x.Supplier.ContactName, x.Supplier.ContactTitle }
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        var entity = await dbContext.Products
-            .SingleOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
-
-        if (entity is null)
-        {
-            logger.LogInformation("Product {ProductId} was not found for discontinuation", productId);
-            return false;
-        }
-
-        entity.IsDiscontinued = true;
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation("Discontinued product {ProductId}", productId);
-        return true;
-    }
-
-    public async Task<bool> ReinstateAsync(int productId, CancellationToken cancellationToken)
-    {
-        logger.LogInformation("Reinstating product {ProductId}", productId);
-
-        var entity = await dbContext.Products
-            .SingleOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
-
-        if (entity is null)
-        {
-            logger.LogInformation("Product {ProductId} was not found for reinstatement", productId);
-            return false;
-        }
-
-        entity.IsDiscontinued = false;
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation("Reinstated product {ProductId}", productId);
-        return true;
-    }
-
-    static readonly Expression<Func<ProductEntity, ProductSummaryDto>> ToSummaryDto =
-        x => new ProductSummaryDto(
+        return Product.Rehydrate(
             x.ProductId,
             x.ProductName,
-            x.Category != null ? x.Category.CategoryName : null,
-            x.UnitPrice,
-            x.IsDiscontinued);
-
-    static ProductDetailsDto ToDetailsDto(ProductEntity x)
-    {
-        var supplier = x.Supplier is null ? null : new Supplier(
-            x.Supplier.SupplierId,
-            string.Join(", ", new[] { x.Supplier.CompanyName, x.Supplier.ContactName, x.Supplier.ContactTitle }
-                .Where(s => s is not null)));
-
-        return new ProductDetailsDto(
-            x.ProductId,
-            x.ProductName,
-            supplier,
+            x.SupplierId,
             x.CategoryId,
-            x.Category?.CategoryName,
             x.QuantityPerUnit,
             x.UnitPrice,
-            new InventoryLevel(x.UnitsInStock, x.UnitsOnOrder),
+            x.UnitsInStock,
+            x.UnitsOnOrder,
             x.ReorderLevel,
-            x.IsDiscontinued);
+            x.IsDiscontinued,
+            x.Category?.CategoryName,
+            supplierDisplayName);
     }
 
-    static ProductEntity ToProductEntity(ProductEntity entity, ProductRequest request)
+    static ProductEntity ToProductEntity(ProductEntity entity, Product product)
     {
-        entity.ProductName = request.ProductName.Trim();
-        entity.SupplierId = request.SupplierId;
-        entity.CategoryId = request.CategoryId;
-        entity.QuantityPerUnit = request.QuantityPerUnit;
-        entity.UnitPrice = request.UnitPrice;
-        entity.UnitsInStock = request.Inventory?.UnitsInStock ?? 0;
-        entity.UnitsOnOrder = request.Inventory?.UnitsOnOrder ?? 0;
-        entity.ReorderLevel = request.ReorderLevel;
+        entity.ProductName = product.ProductName.Value;
+        entity.SupplierId = product.SupplierId;
+        entity.CategoryId = product.CategoryId;
+        entity.QuantityPerUnit = product.QuantityPerUnit.Value;
+        entity.UnitPrice = product.UnitPrice.Value;
+        entity.UnitsInStock = product.Inventory.UnitsInStock;
+        entity.UnitsOnOrder = product.Inventory.UnitsOnOrder;
+        entity.ReorderLevel = product.ReorderLevel.Value;
+        entity.IsDiscontinued = product.IsDiscontinued;
 
         return entity;
     }

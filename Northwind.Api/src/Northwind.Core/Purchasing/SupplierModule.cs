@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Northwind.Purchasing.Domain;
 using Northwind.Shared.Abstractions;
 using Northwind.Purchasing.Application;
 using Northwind.Purchasing.Infrastructure;
@@ -23,15 +24,16 @@ public sealed class PurchasingModule : IModule
     {
         services.AddDbContext<SupplierDbContext>(o => o.UseNpgsql(connectionString));
         services.AddScoped<ISuppliersRepository, SuppliersRepository>();
+        services.AddScoped<ISuppliersService, SuppliersService>();
     }
     
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(Routes.Health, async (ISuppliersRepository repository, ILogger<PurchasingModule> logger,
+        endpoints.MapGet(Routes.Health, async (ISuppliersService service, ILogger<PurchasingModule> logger,
             CancellationToken cancellationToken) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Purchasing");
-            var count = await repository.GetCountAsync(cancellationToken);
+            var count = await service.GetCountAsync(cancellationToken);
             return Results.Ok(new { context = "Purchasing", status = "ok", count });
         })
             .WithName("GetPurchasingHealth")
@@ -41,13 +43,13 @@ public sealed class PurchasingModule : IModule
 
         endpoints.MapGet(
                 Routes.Suppliers,
-                async (int? page, int? pageSize, ISuppliersRepository query, ILogger<PurchasingModule> logger,
+                async (int? page, int? pageSize, ISuppliersService service, ILogger<PurchasingModule> logger,
                     CancellationToken cancellationToken) =>
                 {
                     var currentPage = page ?? 1;
                     var currentPageSize = Math.Clamp(pageSize ?? 10, 1, 100);
 
-                    var result = await query.GetAllAsync(currentPage, currentPageSize, cancellationToken);
+                    var result = await service.GetAllAsync(currentPage, currentPageSize, cancellationToken);
 
                     logger.LogInformation("Returning {SupplierCount} of {TotalCount} suppliers", result.Items.Count,
                         result.TotalCount);
@@ -56,14 +58,15 @@ public sealed class PurchasingModule : IModule
             .WithName("GetAllSuppliers")
             .WithTags("Purchasing")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<PurchasingDomainValidationFilter>()
             .Produces<PagedResult<SupplierSummaryDto>>();
 
         endpoints.MapGet(
                 Routes.SupplierById,
-                async (int supplierId, ISuppliersRepository query, ILogger<PurchasingModule> logger,
+                async (int supplierId, ISuppliersService service, ILogger<PurchasingModule> logger,
                     CancellationToken cancellationToken) =>
                 {
-                    var supplier = await query.GetByIdAsync(supplierId, cancellationToken);
+                    var supplier = await service.GetByIdAsync(supplierId, cancellationToken);
 
                     if (supplier is null)
                     {
@@ -76,15 +79,16 @@ public sealed class PurchasingModule : IModule
             .WithName("GetSupplierById")
             .WithTags("Purchasing")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<PurchasingDomainValidationFilter>()
             .Produces<SupplierDetailsDto>()
             .Produces(StatusCodes.Status404NotFound);
 
         endpoints.MapPost(
                 Routes.Suppliers,
-                async (SupplierRequest request, ISuppliersRepository repository,
+                async (SupplierRequest request, ISuppliersService service,
                     CancellationToken cancellationToken) =>
                 {
-                    var createdSupplierId = await repository.CreateAsync(request, cancellationToken);
+                    var createdSupplierId = await service.CreateAsync(request, cancellationToken);
 
                     return Results.Created(
                         $"/api/purchasing/suppliers/{createdSupplierId}",
@@ -93,16 +97,16 @@ public sealed class PurchasingModule : IModule
             .WithName("CreateSupplier")
             .WithTags("Purchasing")
             .AddEndpointFilter<HandlingLogFilter>()
-            .AddEndpointFilter<ValidationFilter<SupplierRequest>>()
+            .AddEndpointFilter<PurchasingDomainValidationFilter>()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
         endpoints.MapPut(
                 Routes.SupplierById,
-                async (int supplierId, SupplierRequest request, ISuppliersRepository repository,
+                async (int supplierId, SupplierRequest request, ISuppliersService service,
                     ILogger<PurchasingModule> logger, CancellationToken cancellationToken) =>
                 {
-                    var updated = await repository.UpdateAsync(supplierId, request, cancellationToken);
+                    var updated = await service.UpdateAsync(supplierId, request, cancellationToken);
 
                     if (!updated)
                     {
@@ -115,7 +119,7 @@ public sealed class PurchasingModule : IModule
             .WithName("UpdateSupplier")
             .WithTags("Purchasing")
             .AddEndpointFilter<HandlingLogFilter>()
-            .AddEndpointFilter<ValidationFilter<SupplierRequest>>()
+            .AddEndpointFilter<PurchasingDomainValidationFilter>()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

@@ -65,18 +65,30 @@ docker --version         # any recent version
 
 ## Documentation
 
-- [Domain proposal](docs/design/DOMAIN.md): DDD proposal with bounded contexts, aggregates, contracts, and context map.
-- [Context map diagram](docs/design/DOMAIN.mmd): Mermaid visual context map.
+- [Domain proposal](docs/design/DOMAIN.md): future-state DDD proposal (reference only, not source of truth for current implementation).
+- [Context map diagram](docs/design/DOMAIN.mmd): future-state Mermaid context map (reference only).
 - [Database reference](docs/DATABASE.md): tables, views, functions, indexes, and constraints.
 - [ER diagram](docs/DATABASE.mmd): Mermaid entity-relationship diagram.
 - [Code review](docs/REVIEW.md): SOLID, DDD, maintainability, scalability, modularity and performance analysis.
+
+### Current implementation status (as-is)
+
+- Implemented schemas/tables: `purchasing.suppliers`, `catalog.categories`, `catalog.products`, `crm.customers`.
+- DDD behavior-centric implementation:
+   - CRM: `Customer` aggregate + domain repository + application service.
+   - Catalog: `Product` aggregate + domain repository + application service.
+   - Purchasing: `Supplier` aggregate + domain repository + application service.
+- Intentional mixed mode in Catalog:
+   - `Product` follows DDD flow.
+   - `Category` remains straightforward CRUD.
+- Domain-validation exception mapping is centralized with endpoint filters for CRM, Catalog (Product routes), and Purchasing.
 
 ### Code Review Ratings
 
 | Category | Backend | Frontend | Overall |
 |---|:---:|:---:|:---:|
 | SOLID | 8 / 10 | 7 / 10 | **8 / 10** |
-| DDD | 6 / 10 | 5 / 10 | **6 / 10** |
+| DDD | 7 / 10 | 5 / 10 | **7 / 10** |
 | Clean Architecture | 6 / 10 | 6 / 10 | **6 / 10** |
 | Maintainability | 7 / 10 | 7 / 10 | **7 / 10** |
 | Scalability | 6 / 10 | 6 / 10 | **6 / 10** |

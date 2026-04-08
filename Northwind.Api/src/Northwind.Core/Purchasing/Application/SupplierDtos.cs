@@ -1,5 +1,5 @@
+using Northwind.Purchasing.Domain;
 using Northwind.Shared.Application;
-using Northwind.Shared.Abstractions;
 
 namespace Northwind.Purchasing.Application;
 
@@ -19,22 +19,35 @@ public sealed record SupplierRequest(
     string CompanyName,
     Contact? Contact,
     Address? Address,
-    Communication? Communication) : IValidatable
+    Communication? Communication);
+
+public static class SupplierDtoMappings
 {
-    public IReadOnlyList<string> Validate()
-    {
-        var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(CompanyName))
-            errors.Add("CompanyName is required.");
-        else if (CompanyName.Length > 40)
-            errors.Add("CompanyName cannot exceed 40 characters.");
-        if (Contact is not null)
-            errors.AddRange(Contact.Validate());
-        if (Address is not null)
-            errors.AddRange(Address.Validate());
-        if (Communication is not null)
-            errors.AddRange(Communication.Validate());
-        return errors;
-    }
+    static int GetPersistedSupplierId(Supplier supplier) =>
+        supplier.Id?.Value ?? throw new InvalidOperationException("Supplier id is not assigned.");
+
+    public static SupplierSummaryDto ToSummaryDto(this Supplier supplier) => new(
+        GetPersistedSupplierId(supplier),
+        supplier.CompanyName.Value,
+        new Contact(
+            supplier.Contact.ContactName,
+            supplier.Contact.ContactTitle));
+
+    public static SupplierDetailsDto ToDetailsDto(this Supplier supplier) => new(
+        GetPersistedSupplierId(supplier),
+        supplier.CompanyName.Value,
+        new Contact(
+            supplier.Contact.ContactName,
+            supplier.Contact.ContactTitle),
+        new Address(
+            supplier.Address.AddressLine,
+            supplier.Address.City,
+            supplier.Address.Region,
+            supplier.Address.PostalCode,
+            supplier.Address.Country),
+        new Communication(
+            supplier.Communication.Phone,
+            supplier.Communication.Fax,
+            supplier.Communication.HomepageUrl));
 }
 

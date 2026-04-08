@@ -58,6 +58,7 @@ public sealed class CrmModule : IModule
             .WithName("GetAllCustomers")
             .WithTags("Crm")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CrmDomainValidationFilter>()
             .Produces<PagedResult<CustomerSummaryDto>>();
 
         endpoints.MapGet(
@@ -65,16 +66,7 @@ public sealed class CrmModule : IModule
                 async (string customerId, ICustomersService service, ILogger<CrmModule> logger,
                     CancellationToken cancellationToken) =>
                 {
-                    CustomerDetailsDto? customer;
-
-                    try
-                    {
-                        customer = await service.GetByIdAsync(customerId, cancellationToken);
-                    }
-                    catch (DomainValidationException ex)
-                    {
-                        return Results.BadRequest(new { errors = ex.Errors });
-                    }
+                    var customer = await service.GetByIdAsync(customerId, cancellationToken);
 
                     if (customer is null)
                     {
@@ -87,6 +79,7 @@ public sealed class CrmModule : IModule
             .WithName("GetCustomerById")
             .WithTags("Crm")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CrmDomainValidationFilter>()
             .Produces<CustomerDetailsDto>()
             .Produces(StatusCodes.Status404NotFound);
 
@@ -95,16 +88,7 @@ public sealed class CrmModule : IModule
                 async (CustomerRequest request, ICustomersService service,
                     CancellationToken cancellationToken) =>
                 {
-                    string createdCustomerId;
-
-                    try
-                    {
-                        createdCustomerId = await service.CreateAsync(request, cancellationToken);
-                    }
-                    catch (DomainValidationException ex)
-                    {
-                        return Results.BadRequest(new { errors = ex.Errors });
-                    }
+                    var createdCustomerId = await service.CreateAsync(request, cancellationToken);
 
                     return Results.Created(
                         $"/api/crm/customers/{createdCustomerId}",
@@ -113,6 +97,7 @@ public sealed class CrmModule : IModule
             .WithName("CreateCustomer")
             .WithTags("Crm")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CrmDomainValidationFilter>()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
@@ -121,16 +106,7 @@ public sealed class CrmModule : IModule
                 async (string customerId, CustomerRequest request, ICustomersService service,
                     ILogger<CrmModule> logger, CancellationToken cancellationToken) =>
                 {
-                    bool updated;
-
-                    try
-                    {
-                        updated = await service.UpdateAsync(customerId, request, cancellationToken);
-                    }
-                    catch (DomainValidationException ex)
-                    {
-                        return Results.BadRequest(new { errors = ex.Errors });
-                    }
+                    var updated = await service.UpdateAsync(customerId, request, cancellationToken);
 
                     if (!updated)
                     {
@@ -143,6 +119,7 @@ public sealed class CrmModule : IModule
             .WithName("UpdateCustomer")
             .WithTags("Crm")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CrmDomainValidationFilter>()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

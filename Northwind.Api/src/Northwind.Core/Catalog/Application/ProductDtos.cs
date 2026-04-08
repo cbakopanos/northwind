@@ -1,4 +1,4 @@
-using Northwind.Shared.Abstractions;
+using Northwind.Catalog.Domain;
 
 namespace Northwind.Catalog.Application;
 
@@ -29,20 +29,7 @@ public sealed record ProductRequest(
     string? QuantityPerUnit,
     decimal UnitPrice,
     InventoryLevel? Inventory,
-    short ReorderLevel) : IValidatable
-{
-    public IReadOnlyList<string> Validate()
-    {
-        var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(ProductName))
-            errors.Add("ProductName is required.");
-        else if (ProductName.Length > 40)
-            errors.Add("ProductName cannot exceed 40 characters.");
-        if (QuantityPerUnit?.Length > 20)
-            errors.Add("QuantityPerUnit cannot exceed 20 characters.");
-        return errors;
-    }
-}
+    short ReorderLevel);
 
 public sealed record ProductSummaryDto(
     int ProductId,
@@ -50,3 +37,35 @@ public sealed record ProductSummaryDto(
     string? CategoryName,
     decimal UnitPrice,
     bool IsDiscontinued);
+
+public static class ProductDtoMappings
+{
+    static int GetPersistedProductId(Product product) =>
+        product.Id?.Value ?? throw new InvalidOperationException("Product id is not assigned.");
+
+    public static ProductSummaryDto ToSummaryDto(this Product product) => new(
+        GetPersistedProductId(product),
+        product.ProductName.Value,
+        product.CategoryName,
+        product.UnitPrice.Value,
+        product.IsDiscontinued);
+
+    public static ProductDetailsDto ToDetailsDto(this Product product)
+    {
+        Supplier? supplier = null;
+        if (product.SupplierId.HasValue && !string.IsNullOrWhiteSpace(product.SupplierDisplayName))
+            supplier = new Supplier(product.SupplierId.Value, product.SupplierDisplayName);
+
+        return new ProductDetailsDto(
+            GetPersistedProductId(product),
+            product.ProductName.Value,
+            supplier,
+            product.CategoryId,
+            product.CategoryName,
+            product.QuantityPerUnit.Value,
+            product.UnitPrice.Value,
+            new InventoryLevel(product.Inventory.UnitsInStock, product.Inventory.UnitsOnOrder),
+            product.ReorderLevel.Value,
+            product.IsDiscontinued);
+    }
+}

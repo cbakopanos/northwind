@@ -1,10 +1,11 @@
 using Northwind.Shared.Abstractions;
-using Northwind.Shared.Application;
 
 namespace Northwind.Catalog.Application;
 
-public interface IProductsRepository : IBaseRepository
+public interface IProductsService
 {
+    Task<int> GetCountAsync(CancellationToken cancellationToken = default);
+
     Task<PagedResult<ProductSummaryDto>> GetAllAsync(int page = 1, int pageSize = 10,
         CancellationToken cancellationToken = default);
 

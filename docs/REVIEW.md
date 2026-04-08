@@ -11,7 +11,7 @@
 | Category | Backend | Frontend | Overall |
 |---|:---:|:---:|:---:|
 | **SOLID** | 8 / 10 | 7 / 10 | **8 / 10** |
-| **DDD** | 6 / 10 | 5 / 10 | **6 / 10** |
+| **DDD** | 7 / 10 | 5 / 10 | **7 / 10** |
 | **Clean Architecture** | 6 / 10 | 6 / 10 | **6 / 10** |
 | **Maintainability** | 7 / 10 | 7 / 10 | **7 / 10** |
 | **Scalability** | 6 / 10 | 6 / 10 | **6 / 10** |
@@ -55,18 +55,19 @@
 
 ## 2. DDD
 
-### Backend — 6 / 10
+### Backend — 7 / 10
 
 **✅ Strengths**
 
 - **Bounded contexts are explicit** — Catalog, CRM, Purchasing, Fulfillment, Reporting, SalesOrdering, SalesOrg each map to a dedicated database schema and a self-contained module folder.
-- **Correct layering** — Repository interfaces live in `Application/`, implementations in `Infrastructure/`. The domain layer does not reference EF Core directly.
+- **Correct layering (mixed by intent)** — DDD-enabled modules use aggregate + domain repository + application service (`CRM.Customer`, `Catalog.Product`, `Purchasing.Supplier`). Category management remains CRUD-oriented by design.
 - **Value Objects** — `Address`, `Contact`, and `PhoneNumbers` are shared `record` types used consistently across CRM and Purchasing, providing structural equality and immutability.
 - **DTO separation** — `sealed record` DTOs cleanly separate the API surface from the persistence model.
 
 **⚠️ Concerns**
 
-- **No domain entities or aggregates** — `Category`, `Product`, `Customer`, `Supplier` are pure EF data models with no domain behaviour, invariants, or encapsulation. This is acceptable for a CRUD-centric application but means DDD is applied structurally (context boundaries) rather than behaviourally (rich domain model).
+- **Behavior-centric aggregates now exist** — `Customer`, `Product`, and `Supplier` enforce invariants in domain code and are no longer pure EF CRUD models.
+- **Consistent validation mapping pattern** — CRM, Catalog Product routes, and Purchasing routes map `DomainValidationException` to `400` using endpoint filters.
 - **Context boundary leak** — `CatalogDbContext` maps `SupplierEntity` from the `purchasing` schema solely to perform a join for supplier names on the product list. This is a direct reach across bounded context boundaries. The correct approach is an anti-corruption layer or a dedicated read-model DTO resolved from the Purchasing context.
 - **No domain events** — There is no eventing infrastructure. Cross-context reactions (e.g., "when an order is placed, update inventory") have no defined pattern yet.
 - **No inter-module contracts** — If SalesOrdering needs to reference a Customer from CRM, the pattern for that is currently undefined.
@@ -146,10 +147,9 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 
 **⚠️ Concerns**
 
-- **`SupplierMappings` is empty dead code** — The file exists with no members and unused `using` directives. It should be removed or completed.
 - **Double-logging on health checks** — `BaseRepository.GetCountAsync` logs the count fetch, then the concrete override also logs, producing duplicate log entries per health check call.
 - **Request-timing middleware inlined in `Program.cs`** — The stopwatch lambda is harder to test and reuse. It should be extracted to a proper `IMiddleware` or extension method.
-- **`SuppliersRepository.AddAsync` ID generation** — Catches broad `Exception` (instead of `PostgresException` with error code `23505`) and retries in a loop. A non-PK constraint violation would cause an infinite loop. `Random` is also instantiated per call instead of using `Random.Shared`.
+- **Mixed validation approach is intentional but uneven** — Category routes still use request-contract validation, while DDD-enabled routes use domain exception filters. This is valid, but increases cognitive load when switching between features.
 
 ---
 
@@ -254,7 +254,7 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 | Count + data | Two round-trips per paginated call ⚠️ |
 | Caching | None ⚠️ |
 | Streaming | None ⚠️ |
-| ID generation retry | `Random` instantiated per call; over-broad exception catch ⚠️ |
+| Domain validation mapping | Consistent endpoint-filter-based mapping in CRM/Catalog(Product)/Purchasing ✅ |
 
 ---
 
@@ -276,15 +276,13 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 | # | Priority | Issue | Location |
 |---|---|---|---|
 | 1 | 🔴 High | Context boundary leak — `SupplierEntity` mapped inside `CatalogDbContext` | `CatalogDbContext.cs` |
-| 2 | 🟠 Medium | `SuppliersRepository.AddAsync` catches broad `Exception` in a retry loop; uses `new Random()` per call | `SuppliersRepository.cs` |
-| 3 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
-| 4 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
-| 5 | 🟡 Low | `SupplierMappings.cs` is empty dead code | `SupplierMappings.cs` |
-| 6 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
-| 7 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
-| 8 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
-| 9 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
-| 10 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
+| 2 | 🟠 Medium | `Pagination` component defined but never used; pages implement inline pagination | `Pagination.tsx` |
+| 3 | 🟠 Medium | Shared types (`PagedResult`, `Address`, `Contact`) duplicated across three feature `types.ts` files | `catalog/`, `crm/`, `purchasing/` |
+| 4 | 🟡 Low | `useHealthCheck` 5-second hard-coded startup delay — poor UX | `useHealthCheck.ts` |
+| 5 | 🟡 Low | Double-logging on health check calls | `BaseRepository.cs` |
+| 6 | 🟡 Low | Request-timing middleware inlined in `Program.cs` — should be extracted | `Program.cs` |
+| 7 | 🟡 Low | Missing barrel `index.ts` for `crm/` and `purchasing/` features | `crm/`, `purchasing/` |
+| 8 | 🟡 Low | No code splitting — all pages eagerly imported | `App.tsx` |
 
 ---
 
@@ -292,7 +290,7 @@ Clean Architecture (Robert C. Martin) defines a strict **dependency rule**: sour
 
 - **Reflection-based module auto-discovery** is elegant — `Program.cs` and `CoreComposition.cs` never need to change when a new domain is added.
 - **`file`-scoped route constants** per module prevent global namespace pollution and route string drift.
-- **`IValidatable` + `ValidationFilter<T>`** pipeline is clean, framework-agnostic, and keeps validation logic in request contracts and shared value objects.
+- **Validation strategy is explicit** — CRUD-oriented routes use request-contract validation; DDD-oriented routes use domain exceptions mapped by endpoint filters.
 - **`sealed record` DTOs** with primary constructors — immutable, structurally comparable, modern C#.
 - **Skeleton modules** for unimplemented domains establish the full architecture surface from day one without blocking delivery.
 - **EF SQL projections** via static expression fields avoid over-fetching entity graphs.
