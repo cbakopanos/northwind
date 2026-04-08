@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Northwind.Catalog.Application;
+using Northwind.Catalog.Domain;
 using Northwind.Catalog.Infrastructure;
 using Northwind.Shared.Abstractions;
 
@@ -28,12 +29,13 @@ public sealed class CatalogModule : IModule
     {
         services.AddDbContext<CatalogDbContext>(o => o.UseNpgsql(connectionString));
         services.AddScoped<ICategoriesRepository, CategoriesRepository>();
-        services.AddScoped<IProductsRepository, ProductsRepository>();
+        services.AddScoped<Northwind.Catalog.Domain.IProductsRepository, ProductsRepository>();
+        services.AddScoped<IProductsService, ProductsService>();
     }
     
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(Routes.Health, async (ICategoriesRepository categories, IProductsRepository products,
+        endpoints.MapGet(Routes.Health, async (ICategoriesRepository categories, IProductsService products,
             ILogger<CatalogModule> logger, CancellationToken cancellationToken) =>
         {
             logger.LogInformation("Health endpoint requested for module {ModuleContext}", "Catalog");
@@ -151,13 +153,13 @@ public sealed class CatalogModule : IModule
 
         endpoints.MapGet(
                 Routes.Products,
-                async (int? page, int? pageSize, IProductsRepository query, ILogger<CatalogModule> logger,
+                async (int? page, int? pageSize, IProductsService service, ILogger<CatalogModule> logger,
                     CancellationToken cancellationToken) =>
                 {
                     var currentPage = page ?? 1;
                     var currentPageSize = Math.Clamp(pageSize ?? 10, 1, 100);
 
-                    var result = await query.GetAllAsync(currentPage, currentPageSize, cancellationToken);
+                    var result = await service.GetAllAsync(currentPage, currentPageSize, cancellationToken);
 
                     logger.LogInformation("Returning {ProductCount} of {TotalCount} products", result.Items.Count,
                         result.TotalCount);
@@ -166,14 +168,15 @@ public sealed class CatalogModule : IModule
             .WithName("GetAllProducts")
             .WithTags("Catalog")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CatalogDomainValidationFilter>()
             .Produces<PagedResult<ProductSummaryDto>>();
 
         endpoints.MapGet(
                 Routes.ProductById,
-                async (int productId, IProductsRepository query, ILogger<CatalogModule> logger,
+                async (int productId, IProductsService service, ILogger<CatalogModule> logger,
                     CancellationToken cancellationToken) =>
                 {
-                    var product = await query.GetByIdAsync(productId, cancellationToken);
+                    var product = await service.GetByIdAsync(productId, cancellationToken);
 
                     if (product is null)
                     {
@@ -186,15 +189,16 @@ public sealed class CatalogModule : IModule
             .WithName("GetProductById")
             .WithTags("Catalog")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CatalogDomainValidationFilter>()
             .Produces<ProductDetailsDto>()
             .Produces(StatusCodes.Status404NotFound);
 
         endpoints.MapPost(
                 Routes.Products,
-                async (ProductRequest request, IProductsRepository repository,
+                async (ProductRequest request, IProductsService service,
                     CancellationToken cancellationToken) =>
                 {
-                    var createdProductId = await repository.CreateAsync(request, cancellationToken);
+                    var createdProductId = await service.CreateAsync(request, cancellationToken);
 
                     return Results.Created(
                         $"/api/catalog/products/{createdProductId}",
@@ -203,16 +207,16 @@ public sealed class CatalogModule : IModule
             .WithName("CreateProduct")
             .WithTags("Catalog")
             .AddEndpointFilter<HandlingLogFilter>()
-            .AddEndpointFilter<ValidationFilter<ProductRequest>>()
+            .AddEndpointFilter<CatalogDomainValidationFilter>()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
         endpoints.MapPut(
                 Routes.ProductById,
-                async (int productId, ProductRequest request, IProductsRepository repository,
+                async (int productId, ProductRequest request, IProductsService service,
                     ILogger<CatalogModule> logger, CancellationToken cancellationToken) =>
                 {
-                    var updated = await repository.UpdateAsync(productId, request, cancellationToken);
+                    var updated = await service.UpdateAsync(productId, request, cancellationToken);
 
                     if (!updated)
                     {
@@ -225,17 +229,17 @@ public sealed class CatalogModule : IModule
             .WithName("UpdateProduct")
             .WithTags("Catalog")
             .AddEndpointFilter<HandlingLogFilter>()
-            .AddEndpointFilter<ValidationFilter<ProductRequest>>()
+            .AddEndpointFilter<CatalogDomainValidationFilter>()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
         endpoints.MapPatch(
                 Routes.ProductDiscontinue,
-                async (int productId, IProductsRepository repository, ILogger<CatalogModule> logger,
+                async (int productId, IProductsService service, ILogger<CatalogModule> logger,
                     CancellationToken cancellationToken) =>
                 {
-                    var discontinued = await repository.DiscontinueAsync(productId, cancellationToken);
+                    var discontinued = await service.DiscontinueAsync(productId, cancellationToken);
 
                     if (!discontinued)
                     {
@@ -248,15 +252,16 @@ public sealed class CatalogModule : IModule
             .WithName("DiscontinueProduct")
             .WithTags("Catalog")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CatalogDomainValidationFilter>()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
         endpoints.MapPatch(
                 Routes.ProductReinstate,
-                async (int productId, IProductsRepository repository, ILogger<CatalogModule> logger,
+                async (int productId, IProductsService service, ILogger<CatalogModule> logger,
                     CancellationToken cancellationToken) =>
                 {
-                    var reinstated = await repository.ReinstateAsync(productId, cancellationToken);
+                    var reinstated = await service.ReinstateAsync(productId, cancellationToken);
 
                     if (!reinstated)
                     {
@@ -269,6 +274,7 @@ public sealed class CatalogModule : IModule
             .WithName("ReinstateProduct")
             .WithTags("Catalog")
             .AddEndpointFilter<HandlingLogFilter>()
+            .AddEndpointFilter<CatalogDomainValidationFilter>()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 

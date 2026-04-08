@@ -1,1 +1,0 @@
-// Intentionally left blank. Repository contract moved to Northwind.Crm.Domain.

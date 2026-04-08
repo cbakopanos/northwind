@@ -16,6 +16,7 @@ erDiagram
         string country
         string phone
         string fax
+        timestamptz created_at
         text homepage_url
     }
 
@@ -23,6 +24,7 @@ erDiagram
         int category_id PK
         string category_name
         text description
+        timestamptz created_at
         bytes picture
     }
 
@@ -36,6 +38,7 @@ erDiagram
         smallint units_in_stock
         smallint units_on_order
         smallint reorder_level
+        timestamptz created_at
         bool is_discontinued
     }
 
@@ -51,5 +54,6 @@ erDiagram
         string country
         string phone
         string fax
+        timestamptz created_at
         text homepage_url
     }

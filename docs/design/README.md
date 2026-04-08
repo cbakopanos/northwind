@@ -6,8 +6,8 @@
 
 | File | Purpose |
 |------|---------|
-| `DOMAIN.md` | DDD proposal — bounded contexts, aggregates, contracts, context map (planned, not yet implemented) |
-| `DOMAIN.mmd` | Mermaid context map diagram (planned, not yet implemented) |
+| `DOMAIN.md` | DDD proposal — bounded contexts, aggregates, contracts, context map (future target; partially aligned in CRM/Catalog/Purchasing) |
+| `DOMAIN.mmd` | Mermaid context map diagram (future target reference) |
 | `instnwnd.sql` | Original Microsoft Northwind reference SQL script (not used by any setup script) |
 
 ## Authoritative sources for current implementation
